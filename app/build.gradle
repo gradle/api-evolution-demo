@@ -13,21 +13,19 @@ dependencies {
     testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
     testImplementation 'junit:junit:4.13.2'
 
-    testImplementation(project(":old-client")) {
-        exclude(module: 'old-api')
-    }
-
+    testImplementation(project(":old-client"))
     oldApi(project(':old-api'))
     newApi(project(':new-api'))
 }
 
 tasks.named('test') {
     useJUnitPlatform()
-    classpath += configurations.oldApi
 }
 
 tasks.register('apiEvolutionTest', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath + configurations.newApi
+    classpath = sourceSets.test.runtimeClasspath
+    classpath -= configurations.oldApi
+    classpath += configurations.newApi
     useJUnitPlatform()
 }
