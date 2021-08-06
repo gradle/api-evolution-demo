@@ -1,6 +1,7 @@
+apply plugin: "java-library"
 apply plugin: "groovy"
 
 dependencies {
-    implementation(project(":old-api"))
+    api(project(":old-api"))
     implementation("org.codehaus.groovy:groovy:3.0.8")
 }
