@@ -62,7 +62,7 @@ class AppTest extends Specification {
         // gets the bytes from the transformed class
         byte[] bytes = classWriter.toByteArray();
         // writes the transformed class to the file system - to analyse it (e.g. javap -verbose)
-        new FileOutputStream(new File("DynamicGroovyClient\$\$Transformed.class")).write(bytes);
+        //new FileOutputStream(new File("DynamicGroovyClient\$\$Transformed.class")).write(bytes);
 
         // inject the transformed class into the current class loader
         ClassLoader classLoader = getClass().getClassLoader();
