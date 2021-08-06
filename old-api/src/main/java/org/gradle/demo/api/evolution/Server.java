@@ -1,6 +1,6 @@
 package org.gradle.demo.api.evolution;
 
-class Server {
+public class Server {
     private String name = "lajos";
 
     public String getName() {
