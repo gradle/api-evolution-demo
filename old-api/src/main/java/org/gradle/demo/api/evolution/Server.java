@@ -1,7 +1,7 @@
 package org.gradle.demo.api.evolution;
 
 public class Server {
-    private String name = "lajos";
+    private String name = "old-api";
 
     public String getName() {
         return name;
