@@ -5,9 +5,24 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ASM9;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.SWAP;
 
 public class MyClassVisitor extends ClassVisitor {
+
+    private static final String SERVER_TYPE = "org/gradle/demo/api/evolution/Server";
+    private static final String SET_NAME_METHOD = "setName";
+    private static final String SET_NAME_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class)).toString();
+    private static final String GET_NAME_METHOD = "getName";
+    private static final String PROPERTY_TYPE = "org/gradle/demo/api/evolution/Property";
+    private static final String OLD_GET_NAME_DESC = Type.getMethodDescriptor(Type.getType(String.class)).toString();
+    private static final String NEW_GET_NAME_DESC = Type.getMethodDescriptor(Type.getType("L" + PROPERTY_TYPE + ";")).toString();
+    private static final String SET_METHOD = "set";
+    private static final String SET_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class));
+    private static final String GET_METHOD = "get";
+    private static final String GET_DESC = Type.getMethodDescriptor(Type.getType(Object.class));
 
     public MyClassVisitor(int i, ClassVisitor classVisitor) {
         super(i, classVisitor);
@@ -20,31 +35,33 @@ public class MyClassVisitor extends ClassVisitor {
         }
 
         MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-        if ("<clinit>".equals(name)) {
-            mv.visitCode();
-            mv.visitFieldInsn(GETSTATIC, "java/lang/System",
-                "out", "Ljava/io/PrintStream;");
-            mv.visitLdcInsn("Hello World!");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream",
-                "println", "(Ljava/lang/String;)V", false);
-            mv.visitInsn(RETURN);
-            mv.visitEnd();
-        return mv;
-        } else {
-            return new MethodReplaceMethodVisitor(mv);
-        }
+        return new MethodReplaceMethodVisitor(mv);
     }
 
     private static final class MethodReplaceMethodVisitor extends MethodVisitor {
 
         public MethodReplaceMethodVisitor(MethodVisitor mv) {
-            super(Opcodes.ASM9, mv);
+            super(ASM9, mv);
         }
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-            System.out.println(String.format("opcode: %d, owner: %s, name: %s, desc: %s, itf: %s",
-                opcode, owner, name, desc, itf ? "true" : "false"));
+            if (opcode == INVOKEVIRTUAL) {
+                if (owner.equals(SERVER_TYPE)) {
+                    if (name.equals(SET_NAME_METHOD) && desc.equals(SET_NAME_DESC)) {
+                        super.visitInsn(SWAP);
+                        super.visitMethodInsn(INVOKEVIRTUAL, owner, GET_NAME_METHOD, NEW_GET_NAME_DESC, false);
+                        super.visitInsn(SWAP);
+                        super.visitMethodInsn(INVOKEVIRTUAL, PROPERTY_TYPE, SET_METHOD, SET_DESC, false);
+                        return;
+                    } else if (name.equals(GET_NAME_METHOD) || desc.equals(OLD_GET_NAME_DESC)) {
+                        super.visitMethodInsn(INVOKEVIRTUAL, owner, GET_NAME_METHOD, NEW_GET_NAME_DESC, false);
+                        super.visitMethodInsn(INVOKEVIRTUAL, PROPERTY_TYPE, GET_METHOD, GET_DESC, false);
+                        super.visitTypeInsn(CHECKCAST, Type.getType(String.class).getDescriptor());
+                        return;
+                    }
+                }
+            }
             super.visitMethodInsn(opcode, owner, name, desc, itf);
         }
     }
