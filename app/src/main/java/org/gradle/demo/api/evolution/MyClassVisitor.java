@@ -1,7 +1,6 @@
 package org.gradle.demo.api.evolution;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -30,7 +29,23 @@ public class MyClassVisitor extends ClassVisitor {
                 "println", "(Ljava/lang/String;)V", false);
             mv.visitInsn(RETURN);
             mv.visitEnd();
-        }
         return mv;
+        } else {
+            return new MethodReplaceMethodVisitor(mv);
+        }
+    }
+
+    private static final class MethodReplaceMethodVisitor extends MethodVisitor {
+
+        public MethodReplaceMethodVisitor(MethodVisitor mv) {
+            super(Opcodes.ASM9, mv);
+        }
+
+        @Override
+        public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+            System.out.println(String.format("opcode: %d, owner: %s, name: %s, desc: %s, itf: %s",
+                opcode, owner, name, desc, itf ? "true" : "false"));
+            super.visitMethodInsn(opcode, owner, name, desc, itf);
+        }
     }
 }
