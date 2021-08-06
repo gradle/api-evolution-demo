@@ -12,8 +12,7 @@ class AppTest extends Specification {
 
     def setupSpec() {
         if (Boolean.getBoolean("org.gradle.api.transform")) {
-            println "Transforming classes"
-            transformAndLoadDynamicGroovyClientClass()
+            transformAndLoadClientClasses()
         }
     }
 
@@ -49,9 +48,16 @@ class AppTest extends Specification {
         noExceptionThrown()
     }
 
-    private def transformAndLoadDynamicGroovyClientClass() {
+    private static def transformAndLoadClientClasses() {
+        ["JavaClient", "KotlinClient", "DynamicGroovyClient", "StaticGroovyClient"]
+            .forEach(AppTest::transformAndLoadClientClass)
+    }
+
+    private static def transformAndLoadClientClass(String className) {
+        println "Transforming ${className}"
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         // creates the ASM ClassReader which will read the class file
-        ClassReader classReader = new ClassReader(getClass().classLoader.getResource("org/gradle/demo/api/evolution/DynamicGroovyClient.class").bytes);
+        ClassReader classReader = new ClassReader(classLoader.getResource("org/gradle/demo/api/evolution/${className}.class").bytes);
         // creates the ASM ClassWriter which will create the transformed class
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         // creates the ClassVisitor to do the byte code transformations
@@ -65,16 +71,8 @@ class AppTest extends Specification {
         //new FileOutputStream(new File("DynamicGroovyClient\$\$Transformed.class")).write(bytes);
 
         // inject the transformed class into the current class loader
-        ClassLoader classLoader = getClass().getClassLoader();
         Method defineClass = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
         defineClass.setAccessible(true);
-        Class<?> clientClass = (Class<?>) defineClass.invoke(classLoader, null, bytes, 0, bytes.length);
-
-        // prober the server clas
-        Object client = clientClass.newInstance();
-        Method getNameMethod = clientClass.getMethod("main", String[].class);
-        // class the getNameMethod method
-     //   println "calling main() on DynamicGroovyClient class yields: " + getNameMethod.invoke(null, new String[] {});
+        defineClass.invoke(classLoader, null, bytes, 0, bytes.length);
     }
 }
-

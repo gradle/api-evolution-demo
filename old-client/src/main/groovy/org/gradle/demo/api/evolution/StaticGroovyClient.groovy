@@ -4,7 +4,7 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class StaticGroovyClient {
-    static void main(String[] args) {
+    static void main() {
         def server = new Server()
         server.name = "lajos"
         println server.name
