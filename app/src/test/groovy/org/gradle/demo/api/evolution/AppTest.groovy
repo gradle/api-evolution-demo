@@ -11,7 +11,10 @@ import java.lang.reflect.Method
 class AppTest extends Specification {
 
     def setupSpec() {
-        transformServerClass()
+        if (Boolean.getBoolean("org.gradle.api.transform")) {
+            println "Transforming classes"
+            transformAndLoadDynamicGroovyClientClass()
+        }
     }
 
     def "old Java client works with old api"() {
@@ -46,11 +49,11 @@ class AppTest extends Specification {
         noExceptionThrown()
     }
 
-    private def transformServerClass() {
+    private def transformAndLoadDynamicGroovyClientClass() {
         // creates the ASM ClassReader which will read the class file
         ClassReader classReader = new ClassReader(getClass().classLoader.getResource("org/gradle/demo/api/evolution/DynamicGroovyClient.class").bytes);
         // creates the ASM ClassWriter which will create the transformed class
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         // creates the ClassVisitor to do the byte code transformations
         ClassVisitor classVisitor = new MyClassVisitor(Opcodes.ASM9, classWriter);
         // reads the class file and apply the transformations which will be written into the ClassWriter
@@ -68,7 +71,7 @@ class AppTest extends Specification {
         Class<?> clientClass = (Class<?>) defineClass.invoke(classLoader, null, bytes, 0, bytes.length);
 
         // prober the server clas
-        Object server = clientClass.newInstance();
+        Object client = clientClass.newInstance();
         Method getNameMethod = clientClass.getMethod("main", String[].class);
         // class the getNameMethod method
      //   println "calling main() on DynamicGroovyClient class yields: " + getNameMethod.invoke(null, new String[] {});

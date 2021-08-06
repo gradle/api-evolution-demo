@@ -31,6 +31,7 @@ tasks.register('apiEvolutionTest', Test) {
     classpath = sourceSets.test.runtimeClasspath
     classpath -= configurations.oldApi
     classpath += configurations.newApi
+    systemProperty("org.gradle.api.transform", true)
     useJUnitPlatform()
 }
 
