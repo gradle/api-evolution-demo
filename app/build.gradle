@@ -26,7 +26,7 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-tasks.register('apiEvolutionTest', Test) {
+def apiEvolutionTest = tasks.register('apiEvolutionTest', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     classpath -= configurations.oldApi
@@ -39,4 +39,8 @@ tasks.register('printAsm', JavaExec) {
     main = 'org.objectweb.asm.util.ASMifier'
     classpath = sourceSets.test.runtimeClasspath
     args 'org.gradle.demo.api.evolution.DynamicGroovyClient'
+}
+
+tasks.named("check").configure {
+    dependsOn(apiEvolutionTest)
 }
