@@ -16,7 +16,7 @@ class AppTest extends Specification {
         }
     }
 
-    def "old Java client works with old api"() {
+    def "Java client works"() {
         when:
         JavaClient.main()
 
@@ -24,7 +24,7 @@ class AppTest extends Specification {
         noExceptionThrown()
     }
 
-    def "old Kotlin client works with old api"() {
+    def "Kotlin client works"() {
         when:
         KotlinClient.main()
 
@@ -32,7 +32,7 @@ class AppTest extends Specification {
         noExceptionThrown()
     }
 
-    def "old static Groovy client works with old api"() {
+    def "static Groovy client works"() {
         when:
         StaticGroovyClient.main()
 
@@ -40,7 +40,7 @@ class AppTest extends Specification {
         noExceptionThrown()
     }
 
-    def "old dynamic Groovy client works with old api"() {
+    def "dynamic Groovy client works"() {
         when:
         DynamicGroovyClient.main()
 
