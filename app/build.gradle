@@ -3,6 +3,8 @@ plugins {
 }
 
 configurations {
+    oldApi
+    newApi
 }
 
 dependencies {
@@ -16,10 +18,21 @@ dependencies {
     testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
     testImplementation 'junit:junit:4.13.2'
 
-    testImplementation(project(":old-client"))
+    testImplementation(project(":old-client")) {
+        exclude(module: 'old-api')
+    }
+
+    oldApi(project(':old-api'))
+    newApi(project(':new-api'))
 }
 
-tasks.withType(Test).configureEach {
-    // Use JUnit Platform for unit tests.
+tasks.named('test') {
+    useJUnitPlatform()
+    classpath += configurations.oldApi
+}
+
+tasks.register('apiEvolutionTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath + configurations.newApi
     useJUnitPlatform()
 }
