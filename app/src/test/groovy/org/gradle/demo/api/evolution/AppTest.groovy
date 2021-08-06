@@ -22,6 +22,14 @@ class AppTest extends Specification {
         noExceptionThrown()
     }
 
+    def "old Kotlin client works with old api"() {
+        when:
+        KotlinClient.main()
+
+        then:
+        noExceptionThrown()
+    }
+
     def "old static Groovy client works with old api"() {
         when:
         StaticGroovyClient.main()
