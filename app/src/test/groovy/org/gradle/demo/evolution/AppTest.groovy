@@ -45,7 +45,7 @@ class AppTest extends Specification {
 
     private def transformServerClass() {
         // creates the ASM ClassReader which will read the class file
-        ClassReader classReader = new ClassReader(getClass().classLoader.getResource("org/gradle/demo/api/evolution/Server.class").bytes);
+        ClassReader classReader = new ClassReader(getClass().classLoader.getResource("org/gradle/demo/api/evolution/DynamicGroovyClient.class").bytes);
         // creates the ASM ClassWriter which will create the transformed class
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         // creates the ClassVisitor to do the byte code transformations
@@ -56,19 +56,19 @@ class AppTest extends Specification {
         // gets the bytes from the transformed class
         byte[] bytes = classWriter.toByteArray();
         // writes the transformed class to the file system - to analyse it (e.g. javap -verbose)
-        new FileOutputStream(new File("Server\$\$Transformed.class")).write(bytes);
+        new FileOutputStream(new File("DynamicGroovyClient\$\$Transformed.class")).write(bytes);
 
         // inject the transformed class into the current class loader
         ClassLoader classLoader = getClass().getClassLoader();
         Method defineClass = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
         defineClass.setAccessible(true);
-        Class<?> serverClass = (Class<?>) defineClass.invoke(classLoader, null, bytes, 0, bytes.length);
+        Class<?> clientClass = (Class<?>) defineClass.invoke(classLoader, null, bytes, 0, bytes.length);
 
         // prober the server clas
-        Object server = serverClass.newInstance();
-        Method getNameMethod = serverClass.getMethod("getName");
+        Object server = clientClass.newInstance();
+        Method getNameMethod = clientClass.getMethod("main", String[].class);
         // class the getNameMethod method
-        println "calling getResult() on transformed server class yields: " + getNameMethod.invoke(server);
+     //   println "calling main() on DynamicGroovyClient class yields: " + getNameMethod.invoke(null, new String[] {});
     }
 }
 
