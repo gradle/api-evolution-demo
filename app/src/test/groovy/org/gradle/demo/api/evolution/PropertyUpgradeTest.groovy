@@ -8,7 +8,7 @@ import spock.lang.Specification
 
 import java.lang.reflect.Method
 
-class AppTest extends Specification {
+class PropertyUpgradeTest extends Specification {
 
     def setupSpec() {
         if (Boolean.getBoolean("org.gradle.api.transform")) {
@@ -50,7 +50,7 @@ class AppTest extends Specification {
 
     private static def transformAndLoadClientClasses() {
         ["JavaClient", "KotlinClient", "DynamicGroovyClient", "StaticGroovyClient"]
-            .forEach(AppTest::transformAndLoadClientClass)
+            .forEach(PropertyUpgradeTest::transformAndLoadClientClass)
     }
 
     private static def transformAndLoadClientClass(String className) {
@@ -61,7 +61,7 @@ class AppTest extends Specification {
         // creates the ASM ClassWriter which will create the transformed class
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         // creates the ClassVisitor to do the byte code transformations
-        ClassVisitor classVisitor = new MyClassVisitor(Opcodes.ASM9, classWriter);
+        ClassVisitor classVisitor = new PropertyUpgraderClassVisitor(Opcodes.ASM9, classWriter);
         // reads the class file and apply the transformations which will be written into the ClassWriter
         classReader.accept(classVisitor, 0);
 

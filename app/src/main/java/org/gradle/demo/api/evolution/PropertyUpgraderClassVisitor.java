@@ -10,7 +10,7 @@ import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.SWAP;
 
-public class MyClassVisitor extends ClassVisitor {
+public class PropertyUpgraderClassVisitor extends ClassVisitor {
 
     private static final String SERVER_TYPE = "org/gradle/demo/api/evolution/Server";
     private static final String SET_NAME_METHOD = "setName";
@@ -24,7 +24,7 @@ public class MyClassVisitor extends ClassVisitor {
     private static final String GET_METHOD = "get";
     private static final String GET_DESC = Type.getMethodDescriptor(Type.getType(Object.class));
 
-    public MyClassVisitor(int i, ClassVisitor classVisitor) {
+    public PropertyUpgraderClassVisitor(int i, ClassVisitor classVisitor) {
         super(i, classVisitor);
     }
 
