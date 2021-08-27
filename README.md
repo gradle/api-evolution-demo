@@ -2,7 +2,7 @@
 
 This is a playground repo to test out ideas around allowing code compiled against an older version of Gradle to run with a newer version of Gradle that have breaking changes.
 
-## Structure
+# Structure
 
 There are the following subprojects:
 
@@ -17,7 +17,7 @@ Try with:
 $ ./gradlew check
 ```
 
-## Property upgrade bytecode
+# Property upgrade bytecode
 
 ## Java/Kotlin/static Groovy
 
@@ -129,4 +129,38 @@ index 02f1620..0c43e4c 100644
          Start  Length  Slot  Name   Signature
 -            0      18     0 server   Ljava/lang/Object;
 +            0      27     0 server   Ljava/lang/Object;
+```
+
+# Our approach
+
+For statically compiled code languages are fairly easy, at least when we need to replace single method calls. We can do this in two similar ways:
+
+1. remove the original bytecode calling the old API, and generate new bytecode that calls the new API, so the resulting code looks exactly as if the original code was rewritten and recompiled against the new API,
+2. remove the original bytecode, and replace it with a call to some compatibility class in Gradle that will call through to the new API.
+
+For dynamic Groovy is harder, but not impossible. The problem is that in the bytecode we have no type information that would allow us to figure out which `INVOKEDYNAMIC` instruction corresponds to what actual API call.
+
+During runtime, before executing the code of every dynamic method, Groovy generates an array of `CallSite`s. The dynamic calls go through these call sites, and when they do, the necessary type information is available. The call sites are created by a generated static method called `$getCallSiteArray()`.
+
+We are borrowing ideas from Gradle's [InstrumentingTransformer](https://github.com/gradle/gradle/blob/fbec2c1faae67f06c725678b108a56e906a232bb/subprojects/core/src/main/java/org/gradle/internal/classpath/InstrumentingTransformer.java) that solve our problem in two steps:
+
+1. via bytecode transformation of the client code we decorate the call to `$getCallSiteArray()` at the beginning of every dynamic method, and process the generated `CallSite` objects via a static method. We basically wrap the code like this:
+
+    ```java
+    /* ... */ = Instrumented.processCallSites($getCallSiteArray());
+    ```
+
+2. in the `Instrumented.processCallSites()` method we wrap each `CallSite` with a wrapper that can detect calls to old APIs, and instead execute calls to the new methods.
+
+In the case of the `doSet()` method, `Instrumented` would be aware that `Server.setTestProperty()` needs to be substituted with `getTestProperty().set()`. So the `CallSite` wrapper would do something like this:
+
+```java
+        @Override
+        public Object call(Object receiver, Object arg) throws Throwable {
+            if (receiver instanceof Server && getName().equals("setTestProperty()")) {
+                return ((Server) receiver).getTestProperty().set((String) arg);
+            } else {
+                return super.call(receiver, arg);
+            }
+        }
 ```
