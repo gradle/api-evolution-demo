@@ -53,6 +53,28 @@ index 02f1620..0c43e4c 100644
 * Full filtered diff: https://gist.github.com/lptr/cd7c9e149e2db5d2c92df2cb6d709728
 * Full unfiltered diff: https://gist.github.com/lptr/a7a8557be684978a553ae3d56ae73006
 
+### Old code
+
+```groovy
+    private static void doSet(Object server) {
+        server.setTestProperty("lajos")
+    }
+    private static Object doGet(Object server) {
+        return server.getTestProperty()
+    }
+```
+
+### New code
+
+```groovy
+    private static void doSet(Object server) {
+        server.getTestProperty().set("lajos")
+    }
+    private static Object doGet(Object server) {
+        return server.getTestProperty().get()
+    }
+```
+
 ### Get
 
 ```diff
