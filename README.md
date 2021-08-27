@@ -9,6 +9,7 @@ There are the following subprojects:
 - `old-api` defines an old version of the `Server` type written in Java,
 - `new-api` defines the new version of the `Server` type, also written in Java,
 - `old-client` contains client code compiled against the old version of `Server`; there are clients written in Java, Kotlin and static and dynamic Groovy,
+- `new-client` is to demonstrate how the code manually written against the new API would look like,
 - `app` has the upgrade logic and a test that tries to run each of the clients in `old-client` against the `new-api`.
 
 Try with:
