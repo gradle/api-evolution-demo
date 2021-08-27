@@ -6,7 +6,7 @@ public class JavaClient {
     }
 
     private static String run(Server server) {
-        server.setTestProperty("lajos");
-        return server.getTestProperty();
+        server.getTestProperty().set("lajos");
+        return server.getTestProperty().get();
     }
 }

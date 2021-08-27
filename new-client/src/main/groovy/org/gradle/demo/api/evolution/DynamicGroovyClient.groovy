@@ -6,7 +6,7 @@ class DynamicGroovyClient {
     }
 
     private static Object run(server) {
-        server.setTestProperty("lajos")
-        return server.getTestProperty()
+        server.getTestProperty().set("lajos")
+        return server.getTestProperty().get()
     }
 }

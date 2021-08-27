@@ -11,6 +11,7 @@ rootProject.name = 'api-evolution-demo'
 include('old-api')
 include('new-api')
 include('old-client')
+include('new-client')
 include('app')
 
 dependencyResolutionManagement {
