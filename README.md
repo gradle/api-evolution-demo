@@ -134,7 +134,7 @@ index 02f1620..0c43e4c 100644
 
 # Our approach
 
-For statically compiled code languages are fairly easy, at least when we need to replace single method calls. We can do this in two similar ways:
+Upgrading statically compiled bytecode from old API to new is relatively easy, at least when we need to replace single method calls. We can do this in two, fairly similar ways:
 
 1. remove the original bytecode calling the old API, and generate new bytecode that calls the new API, so the resulting code looks exactly as if the original code was rewritten and recompiled against the new API,
 2. remove the original bytecode, and replace it with a call to some compatibility class in Gradle that will call through to the new API.
