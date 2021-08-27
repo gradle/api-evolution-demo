@@ -6,3 +6,9 @@ build/
 
 # Ignore IntelliJ files
 .idea/
+
+.vscode/
+.settings
+.project
+.classpath
+bin/
