@@ -12,6 +12,7 @@ include('old-api')
 include('new-api')
 include('old-client')
 include('new-client')
+include('upgrader')
 include('app')
 
 dependencyResolutionManagement {
