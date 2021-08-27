@@ -13,9 +13,9 @@ import static org.objectweb.asm.Opcodes.SWAP;
 public class PropertyUpgraderClassVisitor extends ClassVisitor {
 
     private static final String SERVER_TYPE = "org/gradle/demo/api/evolution/Server";
-    private static final String SET_NAME_METHOD = "setName";
+    private static final String SET_NAME_METHOD = "setTestProperty";
     private static final String SET_NAME_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class)).toString();
-    private static final String GET_NAME_METHOD = "getName";
+    private static final String GET_NAME_METHOD = "getTestProperty";
     private static final String PROPERTY_TYPE = "org/gradle/demo/api/evolution/Property";
     private static final String OLD_GET_NAME_DESC = Type.getMethodDescriptor(Type.getType(String.class)).toString();
     private static final String NEW_GET_NAME_DESC = Type.getMethodDescriptor(Type.getType("L" + PROPERTY_TYPE + ";")).toString();
@@ -57,7 +57,7 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
                     } else if (name.equals(GET_NAME_METHOD) || desc.equals(OLD_GET_NAME_DESC)) {
                         super.visitMethodInsn(INVOKEVIRTUAL, owner, GET_NAME_METHOD, NEW_GET_NAME_DESC, false);
                         super.visitMethodInsn(INVOKEVIRTUAL, PROPERTY_TYPE, GET_METHOD, GET_DESC, false);
-                        super.visitTypeInsn(CHECKCAST, Type.getType(String.class).getDescriptor());
+                        super.visitTypeInsn(CHECKCAST, Type.getType(String.class).getInternalName());
                         return;
                     }
                 }

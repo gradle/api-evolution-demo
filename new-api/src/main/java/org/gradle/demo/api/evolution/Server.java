@@ -1,9 +1,9 @@
 package org.gradle.demo.api.evolution;
 
 class Server {
-    private final Property<String> name = new Property<>("new-api");;
+    private final Property<String> testProperty = new Property<>("new-api");;
 
-    public Property<String> getName() {
-        return name;
+    public Property<String> getTestProperty() {
+        return testProperty;
     }
 }

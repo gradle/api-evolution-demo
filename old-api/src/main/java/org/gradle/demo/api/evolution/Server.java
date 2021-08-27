@@ -1,13 +1,13 @@
 package org.gradle.demo.api.evolution;
 
 public class Server {
-    private String name = "old-api";
+    private String testProperty = "old-api";
 
-    public String getName() {
-        return name;
+    public String getTestProperty() {
+        return testProperty;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTestProperty(String testProperty) {
+        this.testProperty = testProperty;
     }
 }

@@ -4,6 +4,6 @@ package org.gradle.demo.api.evolution
 
 fun main() {
     val server = Server()
-    server.name = "lajos"
-    println(server.name)
+    server.testProperty = "lajos"
+    println(server.testProperty)
 }
