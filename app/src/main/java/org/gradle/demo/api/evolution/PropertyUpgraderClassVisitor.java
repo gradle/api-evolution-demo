@@ -2,24 +2,16 @@ package org.gradle.demo.api.evolution;
 
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-
-import java.util.List;
 
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.ASM9;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.F_SAME;
-import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.SWAP;
@@ -66,7 +58,6 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
         }
 
         if (name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && desc.equals(RETURN_CALL_SITE_ARRAY)) {
-            System.err.println("yep, groovy call sites exist here");
             hasGroovyCallSites = true;
         }
 
@@ -87,10 +78,10 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
         ) {
             {
                 visitCode();
-                _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
-                _DUP();
-                _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
-                _ARETURN();
+                super.visitMethodInsn(INVOKESTATIC, className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY, false);
+                super.visitInsn(DUP);
+                super.visitMethodInsn(INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY, false);
+                super.visitInsn(ARETURN);
                 visitMaxs(2, 0);
                 visitEnd();
             }
@@ -111,61 +102,6 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
 
         public MethodVisitorScope(MethodVisitor methodVisitor) {
             super(ASM9, methodVisitor);
-        }
-
-        /**
-         * @see org.objectweb.asm.Opcodes#F_SAME
-         */
-        protected void _F_SAME() {
-            super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
-        }
-
-        protected void _INVOKESTATIC(Type owner, String name, String descriptor) {
-            _INVOKESTATIC(owner.getInternalName(), name, descriptor);
-        }
-
-        protected void _INVOKESTATIC(String owner, String name, String descriptor) {
-            super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, false);
-        }
-
-        protected void _INVOKESTATIC(String owner, String name, String descriptor, boolean targetIsInterface) {
-            super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, targetIsInterface);
-        }
-
-        protected void _INVOKEVIRTUAL(Type owner, String name, String descriptor) {
-            _INVOKEVIRTUAL(owner.getInternalName(), name, descriptor);
-        }
-
-        protected void _INVOKEVIRTUAL(String owner, String name, String descriptor) {
-            super.visitMethodInsn(INVOKEVIRTUAL, owner, name, descriptor, false);
-        }
-
-        protected void _INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
-            super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray());
-        }
-
-        protected void _DUP() {
-            super.visitInsn(DUP);
-        }
-
-        protected void _ACONST_NULL() {
-            super.visitInsn(ACONST_NULL);
-        }
-
-        protected void _LDC(Object value) {
-            super.visitLdcInsn(value);
-        }
-
-        protected void _ALOAD(int var) {
-            super.visitVarInsn(ALOAD, var);
-        }
-
-        protected void _IFEQ(Label label) {
-            super.visitJumpInsn(IFEQ, label);
-        }
-
-        protected void _ARETURN() {
-            super.visitInsn(ARETURN);
         }
     }
 
@@ -196,7 +132,6 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
                     }
                 }
             }
-            // System.out.println("className=" + className + ", owner=" + owner + ", signature=" + name + desc);
 
             if (owner.equals(className) && name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && desc.equals(RETURN_CALL_SITE_ARRAY)) {
                 _INVOKESTATIC(className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY);
