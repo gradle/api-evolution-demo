@@ -56,6 +56,7 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         this.className = name;
+        super.visit(version, access, name, signature, superName, interfaces);
     }
 
     @Override
@@ -78,6 +79,7 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
         if (hasGroovyCallSites) {
             generateCallSiteFactoryMethod();
         }
+        super.visitEnd();
     }
     private void generateCallSiteFactoryMethod() {
         new MethodVisitorScope(
