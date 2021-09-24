@@ -1,3 +1,7 @@
+plugins {
+    id 'base'
+}
+
 subprojects {
     plugins.withType(JavaBasePlugin).configureEach {
         java {
