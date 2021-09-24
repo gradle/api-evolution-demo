@@ -2,7 +2,6 @@ package org.gradle.demo.api.evolution;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import static org.objectweb.asm.Opcodes.ASM9;
@@ -13,12 +12,12 @@ import static org.objectweb.asm.Opcodes.SWAP;
 public class PropertyUpgraderClassVisitor extends ClassVisitor {
 
     private static final String SERVER_TYPE = "org/gradle/demo/api/evolution/Server";
-    private static final String SET_NAME_METHOD = "setTestProperty";
-    private static final String SET_NAME_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class)).toString();
-    private static final String GET_NAME_METHOD = "getTestProperty";
+    private static final String SET_TEST_PROPERTY_METHOD = "setTestProperty";
+    private static final String SET_TEST_PROPERTY_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class)).toString();
+    private static final String GET_TEST_PROPERTY_METHOD = "getTestProperty";
     private static final String PROPERTY_TYPE = "org/gradle/demo/api/evolution/Property";
-    private static final String OLD_GET_NAME_DESC = Type.getMethodDescriptor(Type.getType(String.class)).toString();
-    private static final String NEW_GET_NAME_DESC = Type.getMethodDescriptor(Type.getType("L" + PROPERTY_TYPE + ";")).toString();
+    private static final String OLD_GET_TEST_PROPERTY_DESC = Type.getMethodDescriptor(Type.getType(String.class)).toString();
+    private static final String NEW_GET_TEST_PROPERTY_DESC = Type.getMethodDescriptor(Type.getType("L" + PROPERTY_TYPE + ";")).toString();
     private static final String SET_METHOD = "set";
     private static final String SET_DESC = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class));
     private static final String GET_METHOD = "get";
@@ -48,14 +47,14 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
             if (opcode == INVOKEVIRTUAL) {
                 if (owner.equals(SERVER_TYPE)) {
-                    if (name.equals(SET_NAME_METHOD) && desc.equals(SET_NAME_DESC)) {
+                    if (name.equals(SET_TEST_PROPERTY_METHOD) && desc.equals(SET_TEST_PROPERTY_DESC)) {
                         super.visitInsn(SWAP);
-                        super.visitMethodInsn(INVOKEVIRTUAL, owner, GET_NAME_METHOD, NEW_GET_NAME_DESC, false);
+                        super.visitMethodInsn(INVOKEVIRTUAL, owner, GET_TEST_PROPERTY_METHOD, NEW_GET_TEST_PROPERTY_DESC, false);
                         super.visitInsn(SWAP);
                         super.visitMethodInsn(INVOKEVIRTUAL, PROPERTY_TYPE, SET_METHOD, SET_DESC, false);
                         return;
-                    } else if (name.equals(GET_NAME_METHOD) || desc.equals(OLD_GET_NAME_DESC)) {
-                        super.visitMethodInsn(INVOKEVIRTUAL, owner, GET_NAME_METHOD, NEW_GET_NAME_DESC, false);
+                    } else if (name.equals(GET_TEST_PROPERTY_METHOD) || desc.equals(OLD_GET_TEST_PROPERTY_DESC)) {
+                        super.visitMethodInsn(INVOKEVIRTUAL, owner, GET_TEST_PROPERTY_METHOD, NEW_GET_TEST_PROPERTY_DESC, false);
                         super.visitMethodInsn(INVOKEVIRTUAL, PROPERTY_TYPE, GET_METHOD, GET_DESC, false);
                         super.visitTypeInsn(CHECKCAST, Type.getType(String.class).getInternalName());
                         return;
