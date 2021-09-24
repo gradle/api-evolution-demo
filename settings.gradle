@@ -8,12 +8,15 @@
  */
 
 rootProject.name = 'api-evolution-demo'
-include('old-api')
 include('new-api')
-include('old-client')
 include('new-client')
+include('new-app')
+
+include('old-api')
+include('old-client')
+include('old-app')
+
 include('upgrader')
-include('app')
 
 dependencyResolutionManagement {
     repositories {

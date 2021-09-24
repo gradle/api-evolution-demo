@@ -11,9 +11,7 @@ import java.lang.reflect.Method
 class PropertyUpgradeTest extends Specification {
 
     def setupSpec() {
-        if (Boolean.getBoolean("org.gradle.api.transform")) {
-            transformAndLoadClientClasses()
-        }
+        transformAndLoadClientClasses()
     }
 
     def "Java client works"() {

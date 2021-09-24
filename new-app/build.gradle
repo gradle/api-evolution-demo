@@ -13,9 +13,9 @@ dependencies {
     testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
     testImplementation 'junit:junit:4.13.2'
 
-    testImplementation(project(":old-client"))
-    oldApi(project(':old-api'))
-    newApi(project(':upgrader'))
+    implementation(project(':new-api'))
+    implementation(project(":old-client"))
+    implementation(project(':upgrader'))
 
     // include asm
     implementation 'org.ow2.asm:asm-util:9.2'
@@ -26,21 +26,8 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-def apiEvolutionTest = tasks.register('apiEvolutionTest', Test) {
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    classpath -= configurations.oldApi
-    classpath += configurations.newApi
-    systemProperty("org.gradle.api.transform", true)
-    useJUnitPlatform()
-}
-
 tasks.register('printAsm', JavaExec) {
     main = 'org.objectweb.asm.util.ASMifier'
     classpath = sourceSets.test.runtimeClasspath
     args 'org.gradle.demo.api.evolution.DynamicGroovyClient'
-}
-
-tasks.named("check").configure {
-    dependsOn(apiEvolutionTest)
 }
