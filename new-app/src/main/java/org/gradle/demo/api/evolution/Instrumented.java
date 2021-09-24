@@ -14,6 +14,7 @@ public class Instrumented {
                     array.array[callSite.getIndex()] = new SetTestPropertiesCallSite(callSite);
                     break;
                 case "getTestProperty":
+                case "testProperty":
                     array.array[callSite.getIndex()] = new GetTestPropertiesCallSite(callSite);
                     break;
             }
@@ -46,6 +47,14 @@ public class Instrumented {
                 return ((Server) receiver).getTestProperty().get();
             }
             return super.call(receiver);
+        }
+
+        @Override
+        public Object callGetProperty(Object receiver) throws Throwable {
+            if (receiver instanceof Server) {
+                return ((Server) receiver).getTestProperty().get();
+            }
+            return super.callGetProperty(receiver);
         }
     }
 }

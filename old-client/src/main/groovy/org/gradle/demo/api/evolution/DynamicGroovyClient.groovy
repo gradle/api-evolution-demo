@@ -5,6 +5,9 @@ class DynamicGroovyClient {
         def server = new Server()
         doSet(server)
         println doGet(server)
+
+        doSetAsProperty(server)
+        println doGetAsProperty(server)
     }
 
     private static void doSet(Object server) {
@@ -12,5 +15,13 @@ class DynamicGroovyClient {
     }
     private static Object doGet(Object server) {
         return server.getTestProperty()
+    }
+
+    private static Object doGetAsProperty(Object server) {
+        return server.testProperty
+    }
+
+    private static Object doSetAsProperty(Object server) {
+        return server.testProperty = "Лайош"
     }
 }
