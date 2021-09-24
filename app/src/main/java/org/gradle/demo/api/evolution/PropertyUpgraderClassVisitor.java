@@ -71,7 +71,7 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
         }
 
         MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-        return new MethodReplaceMethodVisitor(mv);
+        return new MethodReplaceMethodVisitor(mv, className);
     }
 
     @Override
@@ -171,8 +171,11 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
 
     private static final class MethodReplaceMethodVisitor extends MethodVisitor {
 
-        public MethodReplaceMethodVisitor(MethodVisitor mv) {
+        private final String className;
+
+        public MethodReplaceMethodVisitor(MethodVisitor mv, String className) {
             super(ASM9, mv);
+            this.className = className;
         }
 
         @Override
@@ -193,7 +196,17 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
                     }
                 }
             }
+            // System.out.println("className=" + className + ", owner=" + owner + ", signature=" + name + desc);
+
+            if (owner.equals(className) && name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && desc.equals(RETURN_CALL_SITE_ARRAY)) {
+                _INVOKESTATIC(className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY);
+                return;
+            }
             super.visitMethodInsn(opcode, owner, name, desc, itf);
+        }
+
+        private void _INVOKESTATIC(String owner, String name, String descriptor) {
+            super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, false);
         }
     }
 }

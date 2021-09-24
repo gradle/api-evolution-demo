@@ -13,6 +13,8 @@ dependencies {
     testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
     testImplementation 'junit:junit:4.13.2'
 
+    compileOnly(project(':new-api'))
+
     testImplementation(project(":old-client"))
     oldApi(project(':old-api'))
     newApi(project(':upgrader'))

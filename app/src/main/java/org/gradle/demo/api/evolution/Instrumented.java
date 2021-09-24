@@ -1,6 +1,7 @@
 package org.gradle.demo.api.evolution;
 
 import com.google.common.collect.AbstractIterator;
+import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
@@ -37,6 +38,9 @@ public class Instrumented {
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
             switch (callSite.getName()) {
+                case "setTestProperty":
+                    array.array[callSite.getIndex()] = new TestPropertiesCallSite(callSite);
+                    break;
                 case "getProperty":
                     array.array[callSite.getIndex()] = new SystemPropertyCallSite(callSite);
                     break;
@@ -442,6 +446,22 @@ public class Instrumented {
             } else {
                 return super.callGetProperty(receiver);
             }
+        }
+    }
+
+    private static class TestPropertiesCallSite extends AbstractCallSite {
+        public TestPropertiesCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1) throws Throwable {
+            if (receiver instanceof Server && arg1 instanceof String) {
+                System.out.println(receiver.getClass().getCanonicalName());
+                ((Server) receiver).getTestProperty().set((String) arg1);
+                return null;
+            }
+            return super.call(receiver, arg1);
         }
     }
 }
