@@ -11,3 +11,10 @@ jobs:
       - uses: gradle/gradle-build-action@v1
         with:
           arguments: build
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-reports
+          path: |
+            "old-app/build/reports/tests/**"
+            "new-app/build/reports/tests/**"
