@@ -1,10 +1,14 @@
 package org.gradle.demo.api.evolution;
 
+import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
+import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 import static org.objectweb.asm.Opcodes.AASTORE;
 import static org.objectweb.asm.Opcodes.ALOAD;
@@ -50,7 +54,7 @@ class MethodReplacement<T> implements Replacement {
     }
 
     @Override
-    public boolean replaceIfMatches(int opcode, String owner, String name, String desc, boolean itf, int index, MethodVisitor mv) {
+    public boolean replaceByteCodeIfMatches(int opcode, String owner, String name, String desc, boolean itf, int index, MethodVisitor mv) {
         if (opcode == INVOKEVIRTUAL
             && owner.equals(type.getInternalName())
             && name.equals(methodName)
@@ -87,6 +91,20 @@ class MethodReplacement<T> implements Replacement {
             return true;
         } else {
             return false;
+        }
+    }
+
+    @Override
+    public Optional<CallSite> decorateCallSite(CallSite callSite) {
+        if (callSite.getName().equals(methodName)) {
+            return Optional.of(new AbstractCallSite(callSite) {
+                @Override
+                public Object call(Object receiver, Object[] args) throws Throwable {
+                    return replacement.execute(receiver, args);
+                }
+            });
+        } else {
+            return Optional.empty();
         }
     }
 }

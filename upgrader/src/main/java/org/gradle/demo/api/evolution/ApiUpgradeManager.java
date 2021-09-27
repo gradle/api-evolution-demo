@@ -1,6 +1,8 @@
 package org.gradle.demo.api.evolution;
 
 import com.google.common.io.Resources;
+import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -33,6 +35,16 @@ public class ApiUpgradeManager {
     public static <T> T invokeReplacement(int methodReplacementIndex, Object receiver, Object... args) {
         MethodReplacement<T> methodReplacement = (MethodReplacement<T>) INSTANCE.replacements.get(methodReplacementIndex);
         return (T) methodReplacement.invokeReplacement(receiver, args);
+    }
+
+    public static void decorateCallSiteArray(CallSiteArray callSites) {
+        for (CallSite callSite : callSites.array) {
+            for (Replacement replacement : INSTANCE.replacements) {
+                replacement.decorateCallSite(callSite).ifPresent(decoreated ->
+                    callSites.array[callSite.getIndex()] = decoreated
+                );
+            }
+        }
     }
 
     public interface MethodReplacer<T> {

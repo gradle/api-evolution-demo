@@ -1,6 +1,9 @@
 package org.gradle.demo.api.evolution;
 
+import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.objectweb.asm.MethodVisitor;
+
+import java.util.Optional;
 
 public interface Replacement {
     /**
@@ -8,5 +11,10 @@ public interface Replacement {
      *
      * @return {@code true} if the instruction has been replaced.
      */
-    boolean replaceIfMatches(int opcode, String owner, String name, String desc, boolean itf, int index, MethodVisitor mv);
+    boolean replaceByteCodeIfMatches(int opcode, String owner, String name, String desc, boolean itf, int index, MethodVisitor mv);
+
+    /**
+     * Decorate the given Groovy call site.
+     */
+    Optional<CallSite> decorateCallSite(CallSite callSite);
 }
