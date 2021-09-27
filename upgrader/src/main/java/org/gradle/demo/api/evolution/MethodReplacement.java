@@ -21,6 +21,7 @@ import static org.objectweb.asm.Opcodes.DUP_X2;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Opcodes.SWAP;
 
 /**
  * Replaces a method call with alternative code.
@@ -71,32 +72,46 @@ class MethodReplacement<T> implements Replacement {
             LOGGER.info("Matched {}.{}({}), replacing...", owner, name, desc);
 
             // Create Object[] for arguments
+            // STACK: this, ... -> this, ..., length
             mv.visitLdcInsn(argumentTypes.length);
+            // STACK: this, ..., length -> this, ..., []
             mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 
             // Convert the arguments on stack to Object[]
             for (int argumentIndex = argumentTypes.length - 1; argumentIndex >= 0; argumentIndex--) {
-                // this, ..., arg, [] -> this, ..., arg, [], argIndex
+                Type argumentType = argumentTypes[argumentIndex];
+                // Convert argumetn on stack behind Object[] to Object if necessary
+                // STACK: this, ..., arg as primitve, [] -> this, ..., arg as Object, []
+                boxValueIfNecessary(mv, argumentType);
+                // STACK: this, ..., arg, [] -> this, ..., arg, [], argIndex
                 mv.visitLdcInsn(argumentIndex);
-                // this, ..., arg, [], argIndex -> this, ..., [], argIndex, arg, [], argIndex
+                // STACK: this, ..., arg, [], argIndex -> this, ..., [], argIndex, arg, [], argIndex
                 mv.visitInsn(DUP2_X1);
-                // this, ..., [], argIndex, arg, [], argIndex -> this, ..., [], argIndex, arg, []
+                // STACK: this, ..., [], argIndex, arg, [], argIndex -> this, ..., [], argIndex, arg, []
                 mv.visitInsn(POP);
-                // this, ..., [], argIndex, arg, [] -> this, ..., [], [], argIndex, arg, []
+                // STACK: this, ..., [], argIndex, arg, [] -> this, ..., [], [], argIndex, arg, []
                 mv.visitInsn(DUP_X2);
-                // this, ..., [], [], argIndex, arg, [] -> this, ..., [], [], argIndex, arg
+                // STACK: this, ..., [], [], argIndex, arg, [] -> this, ..., [], [], argIndex, arg
                 mv.visitInsn(POP);
-                // this, ..., [], [], argIndex, arg -> this, ..., []
+                // STACK: this, ..., [], [], argIndex, arg -> this, ..., []
                 mv.visitInsn(AASTORE);
             }
 
             // Put the replacement index on stack
+            // STACK: this, [] -> this, [], index
             mv.visitLdcInsn(index);
 
             // Call the replacement method
-            mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ApiUpgradeManager.class), "invokeReplacement", INVOKE_REPLACEMENT_DESC, false);
+            // STACK: this, [], index -> result as Object
+            mv.visitMethodInsn(
+                INVOKESTATIC,
+                Type.getInternalName(ApiUpgradeManager.class),
+                "invokeReplacement",
+                INVOKE_REPLACEMENT_DESC,
+                false);
 
             // Re-cast the returned value
+            // STACK: result as Object -> result as T
             Type returnType = Type.getReturnType(desc);
             mv.visitTypeInsn(CHECKCAST, returnType.getInternalName());
             return true;
@@ -117,5 +132,67 @@ class MethodReplacement<T> implements Replacement {
         } else {
             return Optional.empty();
         }
+    }
+
+    // TODO Test this
+    private static void boxValueIfNecessary(MethodVisitor mv, Type type) {
+        Type primitiveType;
+        Type objectType;
+        int sort = type.getSort();
+        switch (sort) {
+            case Type.BOOLEAN:
+                primitiveType = Type.BOOLEAN_TYPE;
+                objectType = Type.getType(Boolean.class);
+                break;
+            case Type.BYTE:
+                primitiveType = Type.BYTE_TYPE;
+                objectType = Type.getType(Byte.class);
+                break;
+            case Type.CHAR:
+                primitiveType = Type.CHAR_TYPE;
+                objectType = Type.getType(Character.class);
+                break;
+            case Type.SHORT:
+                primitiveType = Type.SHORT_TYPE;
+                objectType = Type.getType(Short.class);
+                break;
+            case Type.INT:
+                primitiveType = Type.INT_TYPE;
+                objectType = Type.getType(Integer.class);
+                break;
+            case Type.FLOAT:
+                primitiveType = Type.FLOAT_TYPE;
+                objectType = Type.getType(Float.class);
+                break;
+            case Type.LONG:
+                primitiveType = Type.LONG_TYPE;
+                objectType = Type.getType(Long.class);
+                break;
+            case Type.DOUBLE:
+                primitiveType = Type.DOUBLE_TYPE;
+                objectType = Type.getType(Double.class);
+                break;
+            default:
+                return;
+        }
+
+        // Swap the Object[] and the unboxed arg on the operand stack
+        if (sort == Type.LONG || sort == Type.DOUBLE) {
+            // STACK: this, ..., arg1, arg2, [] -> this, ..., [], arg1, arg2, []
+            mv.visitInsn(DUP_X2);
+            // STACK: this, ..., [], arg1, arg2, [] -> this, ..., [], arg1, arg2
+            mv.visitInsn(POP);
+        } else {
+            // STACK: this, ..., arg, [] -> this, ..., [], arg
+            mv.visitInsn(SWAP);
+        }
+
+        // Box the primitive value
+        // STACK: this, ..., [], arg as primitive -> this, ..., [], arg as object
+        mv.visitMethodInsn(INVOKESTATIC, objectType.getInternalName(), "valueOf", Type.getMethodDescriptor(objectType, primitiveType), false);
+
+        // Swap the boxed arg and the Object[] back in place
+        // STACK: this, ..., [], arg -> this, ..., arg, []
+        mv.visitInsn(SWAP);
     }
 }
