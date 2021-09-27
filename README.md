@@ -1,5 +1,7 @@
 # Gradle API evolution demo
 
+![Build](https://github.com/gradle/api-evolution-demo/actions/workflows/build.yml/badge.svg)
+
 This is a playground repo to test out ideas around allowing code compiled against an older version of Gradle to run with a newer version of Gradle that have breaking changes.
 
 # Structure
