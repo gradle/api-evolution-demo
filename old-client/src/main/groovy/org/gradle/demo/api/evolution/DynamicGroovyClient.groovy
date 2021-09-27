@@ -9,8 +9,13 @@ class DynamicGroovyClient {
 
     private static void doSet(Object server) {
         server.setTestProperty("lajos")
+        server.testProperty = "tibor"
     }
+
     private static Object doGet(Object server) {
-        return server.getTestProperty()
+        def a = server.getTestProperty()
+        def b = server.testProperty
+        assert a == b
+        return b
     }
 }

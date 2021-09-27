@@ -48,6 +48,12 @@ public class ApiUpgradeManager {
         }
     }
 
+    public static void init() {
+        for (Replacement replacement : INSTANCE.replacements) {
+            replacement.decorateMetaClass();
+        }
+    }
+
     public interface MethodReplacer<T> {
         <T> void replaceWith(ReplacementLogic<T> method);
     }
@@ -61,45 +67,24 @@ public class ApiUpgradeManager {
         };
     }
 
-    interface GetterReplacer<T, P> {
-        void replaceWith(Function<? super T, ? extends P> getter) throws NoSuchMethodException;
-    }
-
-    interface SetterReplacer<T, P> {
-        void replaceWith(BiConsumer<? super T, ? super P> setter) throws NoSuchMethodException;
-    }
-
     interface PropertyReplacer<T, P> {
-        void replaceWith(Function<? super T, ? extends P> getter, BiConsumer<? super T, ? super P> setter) throws NoSuchMethodException;
+        void replaceWith(Function<? super T, ? extends P> getter, BiConsumer<? super T, ? super P> setter);
     }
 
-    public <T, P> GetterReplacer<T, P> matchGetter(Class<T> type, Class<P> propertyType, String getterName) {
-        return new GetterReplacer<T, P>() {
-            @Override
-            public void replaceWith(Function<? super T, ? extends P> getterReplacement) throws NoSuchMethodException {
-                addGetterReplacement(type, propertyType, getterName, getterReplacement);
-            }
-        };
-    }
-
-    public <T, P> SetterReplacer<T, P> matchSetter(Class<T> type, Class<P> propertyType, String setterName) {
-        return new SetterReplacer<T, P>() {
-            @Override
-            public void replaceWith(BiConsumer<? super T, ? super P> setterReplacement) throws NoSuchMethodException {
-                addSetterReplacement(type, propertyType, setterName, setterReplacement);
-            }
-        };
-    }
-
-    public <T, P> PropertyReplacer<T, P> matchProperty(Class<T> type, Class<P> propertyType, String getterName, String setterName) {
+    public <T, P> PropertyReplacer<T, P> matchProperty(Class<T> type, Class<P> propertyType, String propertyName) {
         return new PropertyReplacer<T, P>() {
             @Override
             public void replaceWith(
                 Function<? super T, ? extends P> getterReplacement,
                 BiConsumer<? super T, ? super P> setterReplacement
             ) {
-                addGetterReplacement(type, propertyType, getterName, getterReplacement);
-                addSetterReplacement(type, propertyType, setterName, setterReplacement);
+                String capitalizedPropertyName = propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
+                String getterPrefix = (propertyType.equals(boolean.class)
+                    ? "is"
+                    : "get");
+                addGetterReplacement(type, propertyType, getterPrefix + capitalizedPropertyName, getterReplacement);
+                addSetterReplacement(type, propertyType, "set" + capitalizedPropertyName, setterReplacement);
+                addGroovyPropertyReplacement(type, propertyType, propertyName, getterReplacement, setterReplacement);
             }
         };
     }
@@ -108,9 +93,9 @@ public class ApiUpgradeManager {
     private <T, P> void addGetterReplacement(Class<T> type, Class<P> propertyType, String getterName, Function<? super T, ? extends P> getterReplacement) {
         replacements.add(new MethodReplacement<P>(
             Type.getType(type),
-            Type.VOID_TYPE,
+            Type.getType(propertyType),
             getterName,
-            new Type[]{Type.getType(propertyType)},
+            new Type[]{},
             (receiver, arguments) -> getterReplacement.apply((T) receiver)));
     }
 
@@ -125,6 +110,10 @@ public class ApiUpgradeManager {
                 setterReplacement.accept((T) receiver, (P) arguments[0]);
                 return null;
             }));
+    }
+
+    private <T, V> void addGroovyPropertyReplacement(Class<T> type, Class<V> propertyType, String propertyName, Function<? super T, ? extends V> getterReplacement, BiConsumer<? super T, ? super V> setterReplacement) {
+        replacements.add(new GroovyPropertyReplacement<>(type, propertyType, propertyName, getterReplacement, setterReplacement));
     }
 
     public void implementReplacements(Type type) throws IOException, ReflectiveOperationException {

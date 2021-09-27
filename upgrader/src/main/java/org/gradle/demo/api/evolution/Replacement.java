@@ -14,7 +14,12 @@ public interface Replacement {
     boolean replaceByteCodeIfMatches(int opcode, String owner, String name, String desc, boolean itf, int index, MethodVisitor mv);
 
     /**
-     * Decorate the given Groovy call site.
+     * Decorate the given Groovy call site during runtime.
      */
     Optional<CallSite> decorateCallSite(CallSite callSite);
+
+    /**
+     * Decorates the Groovy meta-class if necessary during runtime.
+     */
+    default void decorateMetaClass() {}
 }
