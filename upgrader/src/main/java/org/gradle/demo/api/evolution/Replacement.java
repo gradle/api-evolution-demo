@@ -11,10 +11,19 @@ public interface Replacement {
      *
      * @return {@code true} if the instruction has been replaced.
      */
-    boolean replaceByteCodeIfMatches(int opcode, String owner, String name, String desc, boolean itf, int index, MethodVisitor mv);
+    default boolean replaceByteCodeIfMatches(int opcode, String owner, String name, String desc, boolean itf, int index, MethodVisitor mv) {
+        return false;
+    }
 
     /**
-     * Decorate the given Groovy call site.
+     * Executes anything required to initialize the replacement.
      */
-    Optional<CallSite> decorateCallSite(CallSite callSite);
+    default void initializeReplacement() {}
+
+    /**
+     * Decorate the given Groovy call site during runtime.
+     */
+    default Optional<CallSite> decorateCallSite(CallSite callSite) {
+        return Optional.empty();
+    }
 }

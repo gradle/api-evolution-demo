@@ -1,13 +1,31 @@
 package org.gradle.demo.api.evolution;
 
 public class Server {
-    private String testProperty = "old-api";
+    private String stringProperty = "old-api";
+    private int integerProperty = 123;
+    private double doubleProperty = 123.0;
 
-    public String getTestProperty() {
-        return testProperty;
+    public String getStringProperty() {
+        return stringProperty;
     }
 
-    public void setTestProperty(String testProperty) {
-        this.testProperty = testProperty;
+    public void setStringProperty(String stringProperty) {
+        this.stringProperty = stringProperty;
+    }
+
+    public int getIntegerProperty() {
+        return integerProperty;
+    }
+
+    public void setIntegerProperty(int integerProperty) {
+        this.integerProperty = integerProperty;
+    }
+
+    public double getDoubleProperty() {
+        return doubleProperty;
+    }
+
+    public void setDoubleProperty(double doubleProperty) {
+        this.doubleProperty = doubleProperty;
     }
 }

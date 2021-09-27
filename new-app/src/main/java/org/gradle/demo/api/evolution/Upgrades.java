@@ -7,26 +7,24 @@ import java.io.IOException;
 public class Upgrades {
     public Upgrades() {
         ApiUpgradeManager.getInstance()
-            .matchMethod(
-                Type.getType(Server.class),
-                Type.VOID_TYPE,
-                "setTestProperty",
-                Type.getType(String.class)
-            )
-            .replaceWith((receiver, args) -> {
-                ((Server) receiver).getTestProperty().set((String) args[0]);
-                return null;
-            });
-
+            .matchProperty(Server.class, String.class, "stringProperty")
+            .replaceWith(
+                receiver -> receiver.getStringProperty().get(),
+                (receiver, value) -> receiver.getStringProperty().set(value)
+            );
         ApiUpgradeManager.getInstance()
-            .matchMethod(
-                Type.getType(Server.class),
-                Type.getType(String.class),
-                "getTestProperty"
-            )
-            .replaceWith((receiver, args) -> {
-                return ((Server) receiver).getTestProperty().get();
-            });
+            .matchProperty(Server.class, int.class, "integerProperty")
+            .replaceWith(
+                receiver -> receiver.getIntegerProperty().get(),
+                (receiver, value) -> receiver.getIntegerProperty().set(value)
+            );
+        ApiUpgradeManager.getInstance()
+            .matchProperty(Server.class, double.class, "doubleProperty")
+            .replaceWith(
+                receiver -> receiver.getDoubleProperty().get(),
+                (receiver, value) -> receiver.getDoubleProperty().set(value)
+            );
+        ApiUpgradeManager.init();
     }
 
     public void init() throws ReflectiveOperationException, IOException {
