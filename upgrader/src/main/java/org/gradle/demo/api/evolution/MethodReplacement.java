@@ -87,7 +87,7 @@ class MethodReplacement<T> implements Replacement {
 
             // Re-cast the returned value
             Type returnType = Type.getReturnType(desc);
-            mv.visitTypeInsn(CHECKCAST, returnType.getDescriptor());
+            mv.visitTypeInsn(CHECKCAST, returnType.getInternalName());
             return true;
         } else {
             return false;
