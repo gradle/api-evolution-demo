@@ -20,6 +20,8 @@ dependencies {
     // include asm
     implementation 'org.ow2.asm:asm-util:9.2'
     implementation 'org.ow2.asm:asm:9.2'
+
+    implementation 'org.slf4j:slf4j-simple:1.7.32'
 }
 
 tasks.named('test') {
@@ -29,5 +31,5 @@ tasks.named('test') {
 tasks.register('printAsm', JavaExec) {
     main = 'org.objectweb.asm.util.ASMifier'
     classpath = sourceSets.test.runtimeClasspath
-    args 'org.gradle.demo.api.evolution.DynamicGroovyClient'
+    args 'org.gradle.demo.api.evolution.Alma'
 }

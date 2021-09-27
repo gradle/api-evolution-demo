@@ -1,8 +1,11 @@
+plugins {
+    id 'base'
+}
+
 subprojects {
     plugins.withType(JavaBasePlugin).configureEach {
         java {
             toolchain {
-                // There's some error with Java 11+, so let's stick with Java 8 for now
                 languageVersion = JavaLanguageVersion.of(8)
             }
         }
