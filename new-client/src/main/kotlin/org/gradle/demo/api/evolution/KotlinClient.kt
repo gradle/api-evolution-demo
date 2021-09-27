@@ -3,8 +3,8 @@
 package org.gradle.demo.api.evolution
 
 private fun run(server: Server): String {
-    server.testProperty.set("lajos")
-    return server.testProperty.get()
+    server.stringProperty.set("lajos")
+    return server.stringProperty.get()
 }
 
 fun main() {

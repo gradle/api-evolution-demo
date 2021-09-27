@@ -7,10 +7,10 @@ import java.io.IOException;
 public class Upgrades {
     public Upgrades() {
         ApiUpgradeManager.getInstance()
-            .matchProperty(Server.class, String.class, "testProperty")
+            .matchProperty(Server.class, String.class, "stringProperty")
             .replaceWith(
-                receiver -> receiver.getTestProperty().get(),
-                (receiver, value) -> receiver.getTestProperty().set(value)
+                receiver -> receiver.getStringProperty().get(),
+                (receiver, value) -> receiver.getStringProperty().set(value)
             );
         ApiUpgradeManager.init();
     }

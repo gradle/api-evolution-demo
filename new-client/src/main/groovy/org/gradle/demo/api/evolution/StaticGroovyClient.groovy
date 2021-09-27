@@ -9,7 +9,7 @@ class StaticGroovyClient {
     }
 
     public static String run(Server server) {
-        server.testProperty.set("lajos")
-        return server.testProperty.get()
+        server.stringProperty.set("lajos")
+        return server.stringProperty.get()
     }
 }
