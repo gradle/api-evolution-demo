@@ -73,36 +73,20 @@ public class PropertyUpgraderClassVisitor extends ClassVisitor {
         super.visitEnd();
     }
     private void generateCallSiteFactoryMethod() {
-        new MethodVisitorScope(
-            visitStaticPrivateMethod(INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY)
-        ) {
-            {
-                visitCode();
-                super.visitMethodInsn(INVOKESTATIC, className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY, false);
-                super.visitInsn(DUP);
-                super.visitMethodInsn(INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY, false);
-                super.visitInsn(ARETURN);
-                visitMaxs(2, 0);
-                visitEnd();
-            }
-        };
-    }
-
-    private MethodVisitor visitStaticPrivateMethod(String name, String descriptor) {
-        return super.visitMethod(
+        MethodVisitor methodVisitor = super.visitMethod(
             ACC_STATIC | ACC_SYNTHETIC | ACC_PRIVATE,
-            name,
-            descriptor,
+            INSTRUMENTED_CALL_SITE_METHOD,
+            RETURN_CALL_SITE_ARRAY,
             null,
             NO_EXCEPTIONS
         );
-    }
-
-    private static class MethodVisitorScope extends MethodVisitor {
-
-        public MethodVisitorScope(MethodVisitor methodVisitor) {
-            super(ASM9, methodVisitor);
-        }
+        methodVisitor.visitCode();
+        methodVisitor.visitMethodInsn(INVOKESTATIC, className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY, false);
+        methodVisitor.visitInsn(DUP);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY, false);
+        methodVisitor.visitInsn(ARETURN);
+        methodVisitor.visitMaxs(2, 0);
+        methodVisitor.visitEnd();
     }
 
     private static final class MethodReplaceMethodVisitor extends MethodVisitor {
