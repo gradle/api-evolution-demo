@@ -50,7 +50,7 @@ public class ApiUpgradeManager {
 
     public static void init() {
         for (Replacement replacement : INSTANCE.replacements) {
-            replacement.decorateMetaClass();
+            replacement.initializeReplacement();
         }
     }
 
@@ -113,7 +113,7 @@ public class ApiUpgradeManager {
     }
 
     private <T, V> void addGroovyPropertyReplacement(Class<T> type, Class<V> propertyType, String propertyName, Function<? super T, ? extends V> getterReplacement, BiConsumer<? super T, ? super V> setterReplacement) {
-        replacements.add(new GroovyPropertyReplacement<>(type, propertyType, propertyName, getterReplacement, setterReplacement));
+        replacements.add(new DynamicGroovyPropertyReplacement<>(type, propertyType, propertyName, getterReplacement, setterReplacement));
     }
 
     public void implementReplacements(Type type) throws IOException, ReflectiveOperationException {

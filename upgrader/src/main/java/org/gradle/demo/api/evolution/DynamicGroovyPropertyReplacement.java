@@ -5,7 +5,6 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
-import org.objectweb.asm.MethodVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,25 +12,23 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-class GroovyPropertyReplacement<T, V> implements Replacement {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GroovyPropertyReplacement.class);
+/**
+ * Replaces a dynamic Groovy property with the given getters and setters.
+ */
+class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicGroovyPropertyReplacement.class);
     private final Class<T> type;
     private final Class<V> propertyType;
     private final String propertyName;
     private final Function<? super T, ? extends V> getterReplacement;
     private final BiConsumer<? super T, ? super V> setterReplacement;
 
-    public GroovyPropertyReplacement(Class<T> type, Class<V> propertyType, String propertyName, Function<? super T, ? extends V> getterReplacement, BiConsumer<? super T, ? super V> setterReplacement) {
+    public DynamicGroovyPropertyReplacement(Class<T> type, Class<V> propertyType, String propertyName, Function<? super T, ? extends V> getterReplacement, BiConsumer<? super T, ? super V> setterReplacement) {
         this.type = type;
         this.propertyType = propertyType;
         this.propertyName = propertyName;
         this.getterReplacement = getterReplacement;
         this.setterReplacement = setterReplacement;
-    }
-
-    @Override
-    public boolean replaceByteCodeIfMatches(int opcode, String owner, String name, String desc, boolean itf, int index, MethodVisitor mv) {
-        return false;
     }
 
     @Override
@@ -49,7 +46,7 @@ class GroovyPropertyReplacement<T, V> implements Replacement {
     }
 
     @Override
-    public void decorateMetaClass() {
+    public void initializeReplacement() {
         MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
         GroovySystem.getMetaClassRegistry().setMetaClass(type, new PropertySetterMetaClass<T, V>(propertyName, setterReplacement, metaClass));
     }

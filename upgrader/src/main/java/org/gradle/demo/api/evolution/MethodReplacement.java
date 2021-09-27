@@ -19,6 +19,11 @@ import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 
+/**
+ * Replaces a method call with alternative code.
+ *
+ * Replaces both statically compiled calls and dynamic Groovy call sites.
+ */
 class MethodReplacement<T> implements Replacement {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodReplacement.class);
 
