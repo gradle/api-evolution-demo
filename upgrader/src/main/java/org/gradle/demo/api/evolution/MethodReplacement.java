@@ -16,12 +16,15 @@ import static org.objectweb.asm.Opcodes.ANEWARRAY;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.DUP2_X1;
+import static org.objectweb.asm.Opcodes.DUP_X2;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.POP;
 
 /**
  * Replaces a method call with alternative code.
- *
+ * <p>
  * Replaces both statically compiled calls and dynamic Groovy call sites.
  */
 class MethodReplacement<T> implements Replacement {
@@ -31,7 +34,7 @@ class MethodReplacement<T> implements Replacement {
 
     static {
         try {
-            INVOKE_REPLACEMENT_DESC = Type.getMethodDescriptor(ApiUpgradeManager.class.getMethod("invokeReplacement", int.class, Object.class, Object[].class));
+            INVOKE_REPLACEMENT_DESC = Type.getMethodDescriptor(ApiUpgradeManager.class.getMethod("invokeReplacement", Object.class, Object[].class, int.class));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -67,25 +70,28 @@ class MethodReplacement<T> implements Replacement {
 
             LOGGER.info("Matched {}.{}({}), replacing...", owner, name, desc);
 
-            // Read the stack (this + arguments) into local variables
-            mv.visitFrame(Opcodes.F_NEW, argumentTypes.length + 1, argumentTypes, 0, new Object[0]);
-            for (int i = argumentTypes.length; i >= 0; i--) {
-                mv.visitVarInsn(ASTORE, i);
-            }
-            // Put the index of the replacement on the stack
-            mv.visitLdcInsn(index);
-            // Put 'this' back on stack
-            mv.visitVarInsn(ALOAD, 0);
-
-            // Put the arguments back on stack as an Object[]
+            // Create Object[] for arguments
             mv.visitLdcInsn(argumentTypes.length);
             mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
-            for (int i = 1; i <= argumentTypes.length; i++) {
-                mv.visitInsn(DUP);
-                mv.visitLdcInsn(i - 1);
-                mv.visitVarInsn(ALOAD, i);
+
+            // Convert the arguments on stack to Object[]
+            for (int argumentIndex = argumentTypes.length - 1; argumentIndex >= 0; argumentIndex--) {
+                // this, ..., arg, [] -> this, ..., arg, [], argIndex
+                mv.visitLdcInsn(argumentIndex);
+                // this, ..., arg, [], argIndex -> this, ..., [], argIndex, arg, [], argIndex
+                mv.visitInsn(DUP2_X1);
+                // this, ..., [], argIndex, arg, [], argIndex -> this, ..., [], argIndex, arg, []
+                mv.visitInsn(POP);
+                // this, ..., [], argIndex, arg, [] -> this, ..., [], [], argIndex, arg, []
+                mv.visitInsn(DUP_X2);
+                // this, ..., [], [], argIndex, arg, [] -> this, ..., [], [], argIndex, arg
+                mv.visitInsn(POP);
+                // this, ..., [], [], argIndex, arg -> this, ..., []
                 mv.visitInsn(AASTORE);
             }
+
+            // Put the replacement index on stack
+            mv.visitLdcInsn(index);
 
             // Call the replacement method
             mv.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ApiUpgradeManager.class), "invokeReplacement", INVOKE_REPLACEMENT_DESC, false);

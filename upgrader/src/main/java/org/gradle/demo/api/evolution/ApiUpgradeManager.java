@@ -33,7 +33,7 @@ public class ApiUpgradeManager {
     private final List<Replacement> replacements = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
-    public static <T> T invokeReplacement(int methodReplacementIndex, Object receiver, Object... args) {
+    public static <T> T invokeReplacement(Object receiver, Object[] args, int methodReplacementIndex) {
         MethodReplacement<T> methodReplacement = (MethodReplacement<T>) INSTANCE.replacements.get(methodReplacementIndex);
         return (T) methodReplacement.invokeReplacement(receiver, args);
     }
