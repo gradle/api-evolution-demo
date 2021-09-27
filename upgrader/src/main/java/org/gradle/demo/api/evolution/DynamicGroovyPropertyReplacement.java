@@ -36,9 +36,12 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
         if (callSite.getName().equals(propertyName)) {
             return Optional.of(new AbstractCallSite(callSite) {
                 @Override
-                @SuppressWarnings("unused")
                 public Object callGetProperty(Object receiver) throws Throwable {
-                    return getterReplacement.apply((T) receiver);
+                    if (type.isInstance(receiver)) {
+                        return getterReplacement.apply(type.cast(receiver));
+                    } else {
+                        return super.callGetProperty(receiver);
+                    }
                 }
             });
         }
@@ -48,24 +51,27 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
     @Override
     public void initializeReplacement() {
         MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
-        GroovySystem.getMetaClassRegistry().setMetaClass(type, new PropertySetterMetaClass<T, V>(propertyName, setterReplacement, metaClass));
+        GroovySystem.getMetaClassRegistry().setMetaClass(type, new PropertySetterMetaClass<T, V>(type, propertyType, propertyName, setterReplacement, metaClass));
     }
 
     private static class PropertySetterMetaClass<T, V> extends DelegatingMetaClass {
+        private final Class<T> type;
+        private final Class<V> propertyType;
         private final String propertyName;
         private final BiConsumer<? super T, ? super V> setterReplacement;
 
-        public PropertySetterMetaClass(String propertyName, BiConsumer<? super T, ? super V> setterReplacement, MetaClass delegate) {
+        public PropertySetterMetaClass(Class<T> type, Class<V> propertyType, String propertyName, BiConsumer<? super T, ? super V> setterReplacement, MetaClass delegate) {
             super(delegate);
+            this.type = type;
+            this.propertyType = propertyType;
             this.propertyName = propertyName;
             this.setterReplacement = setterReplacement;
         }
 
         @Override
-        @SuppressWarnings("unused")
         public void setProperty(Object object, String property, Object newValue) {
             if (property.equals(propertyName)) {
-                setterReplacement.accept((T) object, (V) newValue);
+                setterReplacement.accept(type.cast(object), propertyType.cast(newValue));
             } else {
                 super.setProperty(object, property, newValue);
             }
