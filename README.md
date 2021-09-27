@@ -8,11 +8,13 @@ This is a playground repo to test out ideas around allowing code compiled agains
 
 There are the following subprojects:
 
-- `old-api` defines an old version of the `Server` type written in Java,
-- `new-api` defines the new version of the `Server` type, also written in Java,
-- `old-client` contains client code compiled against the old version of `Server`; there are clients written in Java, Kotlin and static and dynamic Groovy,
-- `new-client` is to demonstrate how the code manually written against the new API would look like,
-- `app` has the upgrade logic and a test that tries to run each of the clients in `old-client` against the `new-api`.
+- `:old-api` defines an old version of the `Server` type written in Java,
+- `:old-client` contains client code compiled against the old version of `Server`; there are clients written in Java, Kotlin and static and dynamic Groovy,
+- `:old-app` represents the old version of the application, with a test to run `:old-client` against `:old-api`.
+- `:new-api` defines the new version of the `Server` type, also written in Java,
+- `:new-client` is to demonstrate how the code manually written against the new API would look like,
+- `:new-app` represents the new version of the application, with a test that tries to run each of the clients in `:old-client` against the `:new-api`. It uses `:upgrader` to upgrade the old classes, by defining the actual upgrade steps to execute against the `:old-api`.
+- `:upgrader` is the actual abstract upgrade logic.
 
 Try with:
 
