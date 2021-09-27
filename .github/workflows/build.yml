@@ -1,0 +1,13 @@
+name: Gradle build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - uses: gradle/gradle-build-action@v1
+        with:
+          arguments: build
