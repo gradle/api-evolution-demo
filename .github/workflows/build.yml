@@ -12,9 +12,8 @@ jobs:
         with:
           arguments: build
       - name: Archive artifacts
+        if: failure()
         uses: actions/upload-artifact@v2
         with:
           name: test-reports
-          path: |
-            "old-app/build/reports/tests/**"
-            "new-app/build/reports/tests/**"
+          path: "**/build/reports/tests/**"

@@ -32,6 +32,7 @@ public class ApiUpgradeManager {
 
     private final List<Replacement> replacements = new ArrayList<>();
 
+    @SuppressWarnings("unchecked")
     public static <T> T invokeReplacement(int methodReplacementIndex, Object receiver, Object... args) {
         MethodReplacement<T> methodReplacement = (MethodReplacement<T>) INSTANCE.replacements.get(methodReplacementIndex);
         return (T) methodReplacement.invokeReplacement(receiver, args);
@@ -103,6 +104,7 @@ public class ApiUpgradeManager {
         };
     }
 
+    @SuppressWarnings("unchecked")
     private <T, P> void addGetterReplacement(Class<T> type, Class<P> propertyType, String getterName, Function<? super T, ? extends P> getterReplacement) {
         replacements.add(new MethodReplacement<P>(
             Type.getType(type),
@@ -112,6 +114,7 @@ public class ApiUpgradeManager {
             (receiver, arguments) -> getterReplacement.apply((T) receiver)));
     }
 
+    @SuppressWarnings("unchecked")
     private <T, P> void addSetterReplacement(Class<T> type, Class<P> propertyType, String setterName, BiConsumer<? super T, ? super P> setterReplacement) {
         replacements.add(new MethodReplacement<Void>(
             Type.getType(type),

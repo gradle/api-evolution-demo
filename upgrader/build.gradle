@@ -15,6 +15,11 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.32'
 }
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs << '-Xlint:unchecked'
+    options.deprecation = true
+}
+
 tasks.named('test') {
     useJUnitPlatform()
 }
