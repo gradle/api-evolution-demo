@@ -2,11 +2,12 @@ package org.gradle.demo.api.evolution;
 
 public class JavaClient {
     public static void main() {
-        System.out.println(run(new Server()));
-    }
+        Server server = new Server();
 
-    private static String run(Server server) {
         server.setStringProperty("lajos");
-        return server.getStringProperty();
+        System.out.println(server.getStringProperty());
+
+        server.setIntegerProperty(321);
+        System.out.println(server.getIntegerProperty());
     }
 }

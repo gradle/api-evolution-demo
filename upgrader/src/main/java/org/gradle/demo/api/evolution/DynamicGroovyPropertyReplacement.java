@@ -69,9 +69,10 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
         }
 
         @Override
+        @SuppressWarnings("unused")
         public void setProperty(Object object, String property, Object newValue) {
             if (property.equals(propertyName)) {
-                setterReplacement.accept(type.cast(object), propertyType.cast(newValue));
+                setterReplacement.accept((T) object, (V) newValue);
             } else {
                 super.setProperty(object, property, newValue);
             }

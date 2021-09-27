@@ -3,7 +3,6 @@ package org.gradle.demo.api.evolution;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,11 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 import static org.objectweb.asm.Opcodes.AASTORE;
-import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ANEWARRAY;
-import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.DUP2_X1;
 import static org.objectweb.asm.Opcodes.DUP_X2;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
@@ -113,7 +109,7 @@ class MethodReplacement<T> implements Replacement {
             // Re-cast the returned value
             // STACK: result as Object -> result as T
             Type returnType = Type.getReturnType(desc);
-            mv.visitTypeInsn(CHECKCAST, returnType.getInternalName());
+            unboxValueIfNecessary(mv, returnType);
             return true;
         } else {
             return false;
@@ -194,5 +190,65 @@ class MethodReplacement<T> implements Replacement {
         // Swap the boxed arg and the Object[] back in place
         // STACK: this, ..., [], arg -> this, ..., arg, []
         mv.visitInsn(SWAP);
+    }
+
+    // TODO Test this
+    private static void unboxValueIfNecessary(MethodVisitor mv, Type type) {
+        Type primitiveType;
+        String methodName;
+        Type objectType;
+        int sort = type.getSort();
+        switch (sort) {
+            case Type.BOOLEAN:
+                primitiveType = Type.BOOLEAN_TYPE;
+                methodName = "booleanValue";
+                objectType = Type.getType(Boolean.class);
+                break;
+            case Type.BYTE:
+                primitiveType = Type.BYTE_TYPE;
+                methodName = "byteValue";
+                objectType = Type.getType(Byte.class);
+                break;
+            case Type.CHAR:
+                primitiveType = Type.CHAR_TYPE;
+                methodName = "charValue";
+                objectType = Type.getType(Character.class);
+                break;
+            case Type.SHORT:
+                primitiveType = Type.SHORT_TYPE;
+                methodName = "shortValue";
+                objectType = Type.getType(Short.class);
+                break;
+            case Type.INT:
+                primitiveType = Type.INT_TYPE;
+                methodName = "intValue";
+                objectType = Type.getType(Integer.class);
+                break;
+            case Type.FLOAT:
+                primitiveType = Type.FLOAT_TYPE;
+                methodName = "floatValue";
+                objectType = Type.getType(Float.class);
+                break;
+            case Type.LONG:
+                primitiveType = Type.LONG_TYPE;
+                methodName = "longValue";
+                objectType = Type.getType(Long.class);
+                break;
+            case Type.DOUBLE:
+                primitiveType = Type.DOUBLE_TYPE;
+                methodName = "doubleValue";
+                objectType = Type.getType(Double.class);
+                break;
+            default:
+                mv.visitTypeInsn(CHECKCAST, type.getInternalName());
+                return;
+        }
+
+        // Make sure the top of the operand stack holds the right type
+        mv.visitTypeInsn(CHECKCAST, objectType.getInternalName());
+
+        // Unbox the primitive value
+        // STACK: this, ..., [], arg as object -> this, ..., [], arg as primitive
+        mv.visitMethodInsn(INVOKEVIRTUAL, objectType.getInternalName(), methodName, Type.getMethodDescriptor(primitiveType), false);
     }
 }
