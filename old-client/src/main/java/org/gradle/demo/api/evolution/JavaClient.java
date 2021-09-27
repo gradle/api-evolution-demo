@@ -9,5 +9,8 @@ public class JavaClient {
 
         server.setIntegerProperty(321);
         System.out.println(server.getIntegerProperty());
+
+        server.setDoubleProperty(321.0);
+        System.out.println(server.getDoubleProperty());
     }
 }

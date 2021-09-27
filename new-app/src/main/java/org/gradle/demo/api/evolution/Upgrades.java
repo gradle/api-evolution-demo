@@ -18,6 +18,12 @@ public class Upgrades {
                 receiver -> receiver.getIntegerProperty().get(),
                 (receiver, value) -> receiver.getIntegerProperty().set(value)
             );
+        ApiUpgradeManager.getInstance()
+            .matchProperty(Server.class, double.class, "doubleProperty")
+            .replaceWith(
+                receiver -> receiver.getDoubleProperty().get(),
+                (receiver, value) -> receiver.getDoubleProperty().set(value)
+            );
         ApiUpgradeManager.init();
     }
 
