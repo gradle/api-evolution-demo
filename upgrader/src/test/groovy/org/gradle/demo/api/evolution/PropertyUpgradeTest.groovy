@@ -5,21 +5,10 @@ import org.codehaus.groovy.control.CompilationUnit
 import org.codehaus.groovy.control.Phases
 import org.codehaus.groovy.runtime.EncodingGroovyMethods
 import org.codehaus.groovy.tools.GroovyClass
-import spock.lang.Specification
 
-class ApiUpgradeManagerTest extends Specification {
-    private ClassLoader originalClassLoader
-    private GroovyClassLoader oldClassLoader
-    private GroovyClassLoader newClassLoader
-
-    private ApiUpgradeManager manager = new ApiUpgradeManager()
+class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
 
     def setup() {
-        originalClassLoader = Thread.currentThread().contextClassLoader
-        oldClassLoader = new GroovyClassLoader(originalClassLoader)
-        newClassLoader = new GroovyClassLoader(originalClassLoader)
-        Thread.currentThread().contextClassLoader = this.newClassLoader
-
         newClassLoader.parseClass """
             @$CompileStatic.name
             class Property<T> {
@@ -29,10 +18,6 @@ class ApiUpgradeManagerTest extends Specification {
                 void set(T value) { this.value = value }
             }
         """
-    }
-
-    def cleanup() {
-        Thread.currentThread().contextClassLoader = originalClassLoader
     }
 
     def "test"() {
