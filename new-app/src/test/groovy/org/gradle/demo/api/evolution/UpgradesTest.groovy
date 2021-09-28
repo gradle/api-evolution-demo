@@ -2,7 +2,7 @@ package org.gradle.demo.api.evolution
 
 import spock.lang.Specification
 
-class PropertyUpgradeTest extends Specification {
+class UpgradesTest extends Specification {
 
     def setupSpec() {
         new Upgrades().init()

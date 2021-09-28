@@ -21,7 +21,7 @@ public class ApiUpgradeManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiUpgradeManager.class);
 
     private static final Type[] EMPTY = {};
-    private static final ApiUpgradeManager INSTANCE = new ApiUpgradeManager();
+    private static ApiUpgradeManager INSTANCE;
 
     public static ApiUpgradeManager getInstance() {
         return INSTANCE;
@@ -45,10 +45,11 @@ public class ApiUpgradeManager {
         }
     }
 
-    public static void init() {
-        for (Replacement replacement : INSTANCE.replacements) {
+    public void init() {
+        for (Replacement replacement : replacements) {
             replacement.initializeReplacement();
         }
+        INSTANCE = this;
     }
 
     public interface MethodReplacer<T> {
