@@ -80,22 +80,6 @@ class ApiUpgradeManagerTest extends Specification {
         noExceptionThrown()
     }
 
-    class Property<T> {
-        private T value
-
-        Property(T value) {
-            this.value = value
-        }
-
-        T get() {
-            return value
-        }
-
-        void set(T value) {
-            this.value = value
-        }
-    }
-
     private Class<?> compileNew(String script) {
         def newClass = compile(newClassLoader, script)
         return newClassLoader.loadClass(newClass.name)
