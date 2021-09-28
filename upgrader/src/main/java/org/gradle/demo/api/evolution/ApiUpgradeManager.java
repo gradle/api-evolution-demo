@@ -95,9 +95,14 @@ public class ApiUpgradeManager {
 
     public void implementReplacements(Type type) throws IOException, ReflectiveOperationException {
         LOGGER.info("Transforming " + type);
+        byte[] classBytes = Resources.toByteArray(Resources.getResource(type.getInternalName() + ".class"));
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        implementReplacements(classLoader, classBytes);
+    }
+
+    public void implementReplacements(ClassLoader classLoader, byte[] classBytes) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         // creates the ASM ClassReader which will read the class file
-        ClassReader classReader = new ClassReader(Resources.toByteArray(Resources.getResource(type.getInternalName() + ".class")));
+        ClassReader classReader = new ClassReader(classBytes);
         // creates the ASM ClassWriter which will create the transformed class
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         // creates the ClassVisitor to do the byte code transformations
