@@ -1,8 +1,7 @@
 package org.gradle.demo.api.evolution;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
-import org.codehaus.groovy.runtime.callsite.CallSite;
-import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -11,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,35 +21,14 @@ public class ApiUpgradeManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiUpgradeManager.class);
 
     private static final Type[] EMPTY = {};
-    private static ApiUpgradeManager INSTANCE;
-
-    public static ApiUpgradeManager getInstance() {
-        return INSTANCE;
-    }
 
     private final List<Replacement> replacements = new ArrayList<>();
-
-    @SuppressWarnings("unchecked")
-    public static <T> T invokeReplacement(Object receiver, Object[] args, int methodReplacementIndex) {
-        MethodReplacement<T> methodReplacement = (MethodReplacement<T>) INSTANCE.replacements.get(methodReplacementIndex);
-        return (T) methodReplacement.invokeReplacement(receiver, args);
-    }
-
-    public static void decorateCallSiteArray(CallSiteArray callSites) {
-        for (CallSite callSite : callSites.array) {
-            for (Replacement replacement : INSTANCE.replacements) {
-                replacement.decorateCallSite(callSite).ifPresent(decoreated ->
-                    callSites.array[callSite.getIndex()] = decoreated
-                );
-            }
-        }
-    }
 
     public void init() {
         for (Replacement replacement : replacements) {
             replacement.initializeReplacement();
         }
-        INSTANCE = this;
+        new ApiUpgradeHandler(ImmutableList.copyOf(replacements)).useInstance();
     }
 
     public interface MethodReplacer<T> {

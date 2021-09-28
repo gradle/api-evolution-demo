@@ -31,7 +31,7 @@ class MethodReplacement<T> implements Replacement {
 
     static {
         try {
-            INVOKE_REPLACEMENT_DESC = Type.getMethodDescriptor(ApiUpgradeManager.class.getMethod("invokeReplacement", Object.class, Object[].class, int.class));
+            INVOKE_REPLACEMENT_DESC = Type.getMethodDescriptor(ApiUpgradeHandler.class.getMethod("invokeReplacement", Object.class, Object[].class, int.class));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -101,7 +101,7 @@ class MethodReplacement<T> implements Replacement {
             // STACK: this, [], index -> result as Object
             mv.visitMethodInsn(
                 INVOKESTATIC,
-                Type.getInternalName(ApiUpgradeManager.class),
+                Type.getInternalName(ApiUpgradeHandler.class),
                 "invokeReplacement",
                 INVOKE_REPLACEMENT_DESC,
                 false);
