@@ -1,5 +1,6 @@
 package org.gradle.demo.api.evolution
 
+import groovy.transform.CompileStatic
 import org.codehaus.groovy.control.CompilationUnit
 import org.codehaus.groovy.control.Phases
 import org.codehaus.groovy.runtime.EncodingGroovyMethods
@@ -20,7 +21,7 @@ class ApiUpgradeManagerTest extends Specification {
         Thread.currentThread().contextClassLoader = this.newClassLoader
 
         newClassLoader.parseClass """
-            @groovy.transform.CompileStatic
+            @$CompileStatic.name
             class Property<T> {
                 private T value
                 Property(T value) { set(value) }
@@ -36,7 +37,7 @@ class ApiUpgradeManagerTest extends Specification {
 
     def "test"() {
         def serverClass = compileNew """
-            @groovy.transform.CompileStatic
+            @$CompileStatic.name
             class Server {
                 private final Property<String> property = new Property<String>("init")
                 Property<String> getString() { property }
@@ -50,7 +51,7 @@ class ApiUpgradeManagerTest extends Specification {
         manager.init()
 
         def oldServer = compileOld """
-            @groovy.transform.CompileStatic
+            @$CompileStatic.name
             class Server {
                 private String value = "init"
                 String getString() {
@@ -62,7 +63,7 @@ class ApiUpgradeManagerTest extends Specification {
             }
         """
         def oldClient = compileAndUpgradeOld """
-            @groovy.transform.CompileStatic
+            @$CompileStatic.name
             class Client {
                 public void test() {
                     println "Running test()"
