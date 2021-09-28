@@ -7,12 +7,9 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.util.ASMifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -131,9 +128,9 @@ public class ApiUpgradeManager {
         // gets the bytes from the transformed class
         byte[] bytes = classWriter.toByteArray();
         // writes the transformed class to the file system - to analyse it (e.g. javap -verbose)
-        File out = new File("build/" + type.getClassName() + "\\$Transformed.class");
-        new FileOutputStream(out).write(bytes);
-        ASMifier.main(new String[]{out.getAbsolutePath()});
+//        File out = new File("build/" + type.getClassName() + "\\$Transformed.class");
+//        new FileOutputStream(out).write(bytes);
+//        ASMifier.main(new String[]{out.getAbsolutePath()});
 
         // inject the transformed class into the current class loader
         Method defineClass = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
