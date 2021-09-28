@@ -9,7 +9,7 @@ import org.codehaus.groovy.tools.GroovyClass
 class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
 
     def setup() {
-        newClassLoader.parseClass """
+        compileNew """
             @$CompileStatic.name
             class Property<T> {
                 private T value
