@@ -9,11 +9,11 @@ import java.lang.reflect.Type
 @Unroll
 class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
 
-    def "#originalType.simpleName property can be upgraded to lazy"() {
+    def "raw #originalType.simpleName property in #description client can be upgraded to lazy property"() {
         def serverClass = compileNew """
             @CompileStatic
             class Server {
-                final Property<$upgradedType.name> testProperty = new Property<>($originalValue)
+                final Property<${upgradedType.name}> testProperty = new Property<>(${originalValue})
             }
         """
 
@@ -24,60 +24,65 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
             )
         manager.init()
 
-        def oldServer = compileOld """
+        compileOld("""
             @CompileStatic
             class Server {
-                private $originalType.name value = $originalValue
-                $originalType.name ${prefixFor(originalType)}TestProperty() {
+                private ${originalType.name} value = ${originalValue}
+                ${originalType.name} ${prefixFor(originalType)}TestProperty() {
                     value
                 }
-                void setTestProperty($originalType.name value) {
+                void setTestProperty(${originalType.name} value) {
                     this.value = value
                 }
             }
-        """
+        """)
 
         def oldClient = compileAndUpgradeOld """
-            @CompileStatic
+            ${dynamic ? "" : "@CompileStatic"}
             class Client {
                 public void test() {
                     def server = new Server()
-                    assert server.${prefixFor(originalType)}TestProperty() == $originalValue
-                    server.setTestProperty($changedValue)
-                    assert server.${prefixFor(originalType)}TestProperty() == $changedValue
+                    assert server.${prefixFor(originalType)}TestProperty() == ${originalValue}
+                    server.setTestProperty(${changedValue})
+                    assert server.${prefixFor(originalType)}TestProperty() == ${changedValue}
 
-                    server.testProperty = $originalValue
-                    assert server.testProperty == $originalValue
+                    server.testProperty = ${originalValue}
+                    assert server.testProperty == ${originalValue}
                 }
             }
         """
+
         when:
         oldClient.newInstance().test()
         then:
         noExceptionThrown()
 
         where:
-        originalType | upgradedType | originalValue             | changedValue
-        boolean      | Boolean      | false                     | true
-        Boolean      | Boolean      | false                     | true
-        byte         | Byte         | '(byte) 0'                | '(byte) 123'
-        Byte         | Byte         | '(byte) 0'                | '(byte) 123'
-        short        | Short        | '(short) 0'               | '(short) 123'
-        Short        | Short        | '(short) 0'               | '(short) 123'
-        int          | Integer      | 0                         | 123
-        Integer      | Integer      | 0                         | 123
-        float        | Float        | '0F'                      | '123F'
-        Float        | Float        | '0F'                      | '123F'
-        char         | Character    | "(char) 'a'"              | "(char) 'b'"
-        Character    | Character    | "(${Character.name}) 'a'" | "(${Character.name}) 'b'"
-        String       | String       | '"original"'              | '"lajos"'
-        Thing        | Thing        | "new ${Thing.name}(1)"    | "new ${Thing.name}(2)"
-
-        // Long and double doesn't work yet
-//        long                 | Long                 | '0L'          | '123L'
-//        Long                 | Long                 | '0L'          | '123L'
-//        double               | Double               | '0D'          | '123D'
-//        Double               | Double               | '0D'          | '123D'
+        [dynamic, [originalType, upgradedType, originalValue, changedValue]] << [
+            [true, false],
+            [
+                [boolean, Boolean, false, true],
+                [Boolean, Boolean, false, true],
+                [byte, Byte, '(byte) 0', '(byte) 123'],
+                [Byte, Byte, '(byte) 0', '(byte) 123'],
+                [short, Short, '(short) 0', '(short) 123'],
+                [Short, Short, '(short) 0', '(short) 123'],
+                [int, Integer, 0, 123],
+                [Integer, Integer, 0, 123],
+                [float, Float, '0F', '123F'],
+                [Float, Float, '0F', '123F'],
+                [char, Character, "(char) 'a'", "(char) 'b'"],
+                [Character, Character, "(Character) 'a'", "(Character) 'b'"],
+                [String, String, '"original"', '"lajos"'],
+                [Thing, Thing, "new Thing(1)", "new Thing(2)"],
+                // TODO Long and double doesn't work yet -- https://github.com/gradle/api-evolution-demo/issues/11
+//                [long, Long, '0L', '123L'],
+//                [Long, Long, '0L', '123L'],
+//                [double, Double, '0D', '123D'],
+//                [Double, Double, '0D', '123D'],
+            ]
+        ].combinations()
+        description = dynamic ? "dynamic" : "static"
     }
 
     private static String prefixFor(Type type) {

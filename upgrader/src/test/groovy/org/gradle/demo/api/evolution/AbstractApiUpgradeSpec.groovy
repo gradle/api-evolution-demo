@@ -5,6 +5,7 @@ import org.codehaus.groovy.control.Phases
 import org.codehaus.groovy.runtime.EncodingGroovyMethods
 import org.codehaus.groovy.tools.GroovyClass
 import org.intellij.lang.annotations.Language
+import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
 /**
@@ -12,6 +13,8 @@ import spock.lang.Specification
  * compiled against other old code upgraded to work against new code.
  */
 class AbstractApiUpgradeSpec extends Specification {
+    private static final LOGGER = LoggerFactory.getLogger(getClass())
+
     private static final String STATIC_SCRIPT_PREFIX = "import groovy.transform.*\n"
 
     protected ClassLoader originalClassLoader
@@ -58,8 +61,8 @@ class AbstractApiUpgradeSpec extends Specification {
     }
 
     private GroovyClass compile(GroovyClassLoader classLoader, String script) {
-        def fullScript = STATIC_SCRIPT_PREFIX + "import ${getClass().name}.*\n" + script
-        println "Compiling:\n" + fullScript
+        def fullScript = STATIC_SCRIPT_PREFIX + "import ${getClass().name}.*\n" + script.stripIndent()
+        LOGGER.debug("Compiling for {} API:\n{}", classLoader == oldClassLoader ? "old" : "new", fullScript)
 
         def compileUnit = new CompilationUnit()
         def sourceUnit = compileUnit.addSource("Script_" + EncodingGroovyMethods.md5(script) + ".groovy", fullScript)
