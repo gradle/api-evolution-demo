@@ -20,7 +20,7 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
         """
     }
 
-    def "test"() {
+    def "string property can be made lazy"() {
         def serverClass = compileNew """
             @$CompileStatic.name
             class Server {
