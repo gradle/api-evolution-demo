@@ -1,19 +1,16 @@
 package org.gradle.demo.api.evolution;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
-import org.codehaus.groovy.runtime.callsite.CallSite;
-import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.util.ASMifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,34 +21,14 @@ public class ApiUpgradeManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiUpgradeManager.class);
 
     private static final Type[] EMPTY = {};
-    private static final ApiUpgradeManager INSTANCE = new ApiUpgradeManager();
-
-    public static ApiUpgradeManager getInstance() {
-        return INSTANCE;
-    }
 
     private final List<Replacement> replacements = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
-    public static <T> T invokeReplacement(Object receiver, Object[] args, int methodReplacementIndex) {
-        MethodReplacement<T> methodReplacement = (MethodReplacement<T>) INSTANCE.replacements.get(methodReplacementIndex);
-        return (T) methodReplacement.invokeReplacement(receiver, args);
-    }
-
-    public static void decorateCallSiteArray(CallSiteArray callSites) {
-        for (CallSite callSite : callSites.array) {
-            for (Replacement replacement : INSTANCE.replacements) {
-                replacement.decorateCallSite(callSite).ifPresent(decoreated ->
-                    callSites.array[callSite.getIndex()] = decoreated
-                );
-            }
-        }
-    }
-
-    public static void init() {
-        for (Replacement replacement : INSTANCE.replacements) {
+    public void init() {
+        for (Replacement replacement : replacements) {
             replacement.initializeReplacement();
         }
+        new ApiUpgradeHandler(ImmutableList.copyOf(replacements)).useInstance();
     }
 
     public interface MethodReplacer<T> {
@@ -118,9 +95,14 @@ public class ApiUpgradeManager {
 
     public void implementReplacements(Type type) throws IOException, ReflectiveOperationException {
         LOGGER.info("Transforming " + type);
+        byte[] classBytes = Resources.toByteArray(Resources.getResource(type.getInternalName() + ".class"));
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        implementReplacements(classLoader, classBytes);
+    }
+
+    public void implementReplacements(ClassLoader classLoader, byte[] classBytes) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         // creates the ASM ClassReader which will read the class file
-        ClassReader classReader = new ClassReader(Resources.toByteArray(Resources.getResource(type.getInternalName() + ".class")));
+        ClassReader classReader = new ClassReader(classBytes);
         // creates the ASM ClassWriter which will create the transformed class
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         // creates the ClassVisitor to do the byte code transformations
@@ -131,9 +113,9 @@ public class ApiUpgradeManager {
         // gets the bytes from the transformed class
         byte[] bytes = classWriter.toByteArray();
         // writes the transformed class to the file system - to analyse it (e.g. javap -verbose)
-        File out = new File("build/" + type.getClassName() + "\\$Transformed.class");
-        new FileOutputStream(out).write(bytes);
-        ASMifier.main(new String[]{out.getAbsolutePath()});
+//        File out = new File("build/" + type.getClassName() + "\\$Transformed.class");
+//        new FileOutputStream(out).write(bytes);
+//        ASMifier.main(new String[]{out.getAbsolutePath()});
 
         // inject the transformed class into the current class loader
         Method defineClass = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);

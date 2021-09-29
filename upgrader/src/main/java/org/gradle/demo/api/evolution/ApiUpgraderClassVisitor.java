@@ -21,7 +21,7 @@ class ApiUpgraderClassVisitor extends ClassVisitor {
 
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
     private static final String RETURN_CALL_SITE_ARRAY = getMethodDescriptor(getType(CallSiteArray.class));
-    private static final Type API_UPGRADE_MANAGER_TYPE = getType(ApiUpgradeManager.class);
+    private static final Type API_UPGRADE_HANDLER_TYPE = getType(ApiUpgradeHandler.class);
     private static final String DECORATED_CREATE_CALL_SITE_ARRAY_METHoD = "$decoratedCreateCallSiteArray";
     private static final String CALL_SITE_DECORATOR_METHOD = "decorateCallSiteArray";
     private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = getMethodDescriptor(Type.VOID_TYPE, getType(CallSiteArray.class));
@@ -75,7 +75,7 @@ class ApiUpgraderClassVisitor extends ClassVisitor {
         methodVisitor.visitCode();
         methodVisitor.visitMethodInsn(INVOKESTATIC, className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY, false);
         methodVisitor.visitInsn(DUP);
-        methodVisitor.visitMethodInsn(INVOKESTATIC, API_UPGRADE_MANAGER_TYPE.getInternalName(), CALL_SITE_DECORATOR_METHOD, RETURN_VOID_FROM_CALL_SITE_ARRAY, false);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, API_UPGRADE_HANDLER_TYPE.getInternalName(), CALL_SITE_DECORATOR_METHOD, RETURN_VOID_FROM_CALL_SITE_ARRAY, false);
         methodVisitor.visitInsn(ARETURN);
         methodVisitor.visitMaxs(2, 0);
         methodVisitor.visitEnd();

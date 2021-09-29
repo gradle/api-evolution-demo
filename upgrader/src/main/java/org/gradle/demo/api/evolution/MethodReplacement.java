@@ -31,7 +31,7 @@ class MethodReplacement<T> implements Replacement {
 
     static {
         try {
-            INVOKE_REPLACEMENT_DESC = Type.getMethodDescriptor(ApiUpgradeManager.class.getMethod("invokeReplacement", Object.class, Object[].class, int.class));
+            INVOKE_REPLACEMENT_DESC = Type.getMethodDescriptor(ApiUpgradeHandler.class.getMethod("invokeReplacement", Object.class, Object[].class, int.class));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -78,7 +78,7 @@ class MethodReplacement<T> implements Replacement {
                 Type argumentType = argumentTypes[argumentIndex];
                 // Convert argumetn on stack behind Object[] to Object if necessary
                 // STACK: this, ..., arg as primitve, [] -> this, ..., arg as Object, []
-                boxValueIfNecessary(mv, argumentType);
+                boxParameterIfNecessary(mv, argumentType);
                 // STACK: this, ..., arg, [] -> this, ..., arg, [], argIndex
                 mv.visitLdcInsn(argumentIndex);
                 // STACK: this, ..., arg, [], argIndex -> this, ..., [], argIndex, arg, [], argIndex
@@ -101,7 +101,7 @@ class MethodReplacement<T> implements Replacement {
             // STACK: this, [], index -> result as Object
             mv.visitMethodInsn(
                 INVOKESTATIC,
-                Type.getInternalName(ApiUpgradeManager.class),
+                Type.getInternalName(ApiUpgradeHandler.class),
                 "invokeReplacement",
                 INVOKE_REPLACEMENT_DESC,
                 false);
@@ -109,7 +109,7 @@ class MethodReplacement<T> implements Replacement {
             // Re-cast the returned value
             // STACK: result as Object -> result as T
             Type returnType = Type.getReturnType(desc);
-            unboxValueIfNecessary(mv, returnType);
+            unboxReturnTypeIfNecessary(mv, returnType);
             return true;
         } else {
             return false;
@@ -131,7 +131,7 @@ class MethodReplacement<T> implements Replacement {
     }
 
     // TODO Test this
-    private static void boxValueIfNecessary(MethodVisitor mv, Type type) {
+    private static void boxParameterIfNecessary(MethodVisitor mv, Type type) {
         Type primitiveType;
         Type objectType;
         int sort = type.getSort();
@@ -173,7 +173,7 @@ class MethodReplacement<T> implements Replacement {
         }
 
         // Swap the Object[] and the unboxed arg on the operand stack
-        if (sort == Type.LONG || sort == Type.DOUBLE) {
+        if (type.getSize() == 2) {
             // STACK: this, ..., arg1, arg2, [] -> this, ..., [], arg1, arg2, []
             mv.visitInsn(DUP_X2);
             // STACK: this, ..., [], arg1, arg2, [] -> this, ..., [], arg1, arg2
@@ -193,7 +193,7 @@ class MethodReplacement<T> implements Replacement {
     }
 
     // TODO Test this
-    private static void unboxValueIfNecessary(MethodVisitor mv, Type type) {
+    private static void unboxReturnTypeIfNecessary(MethodVisitor mv, Type type) {
         Type primitiveType;
         String methodName;
         Type objectType;
@@ -239,6 +239,10 @@ class MethodReplacement<T> implements Replacement {
                 methodName = "doubleValue";
                 objectType = Type.getType(Double.class);
                 break;
+            case Type.VOID:
+                // Pop the null object pushed by invokeReplacement()
+                mv.visitInsn(POP);
+                return;
             default:
                 mv.visitTypeInsn(CHECKCAST, type.getInternalName());
                 return;
