@@ -38,6 +38,7 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
                 @Override
                 public Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
                     if (type.isInstance(receiver)) {
+                        LOGGER.info("Calling getter replacement for Groovy property {}.{}", type.getName(), propertyName);
                         return getterReplacement.apply(type.cast(receiver));
                     } else {
                         return super.callGroovyObjectGetProperty(receiver);
@@ -47,6 +48,7 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
                 @Override
                 public Object callGetProperty(Object receiver) throws Throwable {
                     if (type.isInstance(receiver)) {
+                        LOGGER.info("Calling getter replacement for property {}.{}", type.getName(), propertyName);
                         return getterReplacement.apply(type.cast(receiver));
                     } else {
                         return super.callGetProperty(receiver);
@@ -81,6 +83,7 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
         @SuppressWarnings("unchecked")
         public void setProperty(Object object, String property, Object newValue) {
             if (property.equals(propertyName)) {
+                LOGGER.info("Calling setter replacement for property {}.{}", type.getName(), propertyName);
                 setterReplacement.accept((T) object, (V) newValue);
             } else {
                 super.setProperty(object, property, newValue);
