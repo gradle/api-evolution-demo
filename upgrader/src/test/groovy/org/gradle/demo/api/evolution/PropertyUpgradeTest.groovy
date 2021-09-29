@@ -3,6 +3,7 @@ package org.gradle.demo.api.evolution
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.TupleConstructor
+import groovy.transform.TypeCheckingMode
 import spock.lang.Unroll
 
 import java.lang.reflect.Type
@@ -10,7 +11,7 @@ import java.lang.reflect.Type
 @Unroll
 class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
 
-    def "raw #originalType.simpleName property in #description client can be upgraded to lazy property"() {
+    def "raw #originalType.simpleName property in #clientKind client can be upgraded to lazy property"() {
         // This is the new server API to run against
         def newServerClass = compileNewApi """
             @CompileStatic
@@ -43,7 +44,7 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
 
         // Compile old client against old server, then upgrade it and load it in the new class-loader
         def upgradedOldClientClass = compileAndUpgradeOldClient """
-            ${dynamicClient ? "" : "@CompileStatic"}
+            @CompileStatic(TypeCheckingMode.${clientTypeCheckingMode})
             @TupleConstructor
             class Client {
                 Server server
@@ -82,10 +83,12 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
         upgradedOldClient.getUsingGroovyProperty() == changedValue
 
         where:
-        [dynamicClient, [originalType, boxedType, originalValue, changedValue]] << [
+        [clientTypeCheckingMode, [originalType, boxedType, originalValue, changedValue]] << [
             [
-                true,
-                false
+                // Simulate client written using statically compiled language
+                TypeCheckingMode.PASS,
+                // Dynamic Groovy client
+                TypeCheckingMode.SKIP
             ],
             [
                 [boolean, Boolean, false, true],
@@ -108,7 +111,7 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
                 [Thing, Thing, new Thing(7), new Thing(123)],
             ]
         ].combinations()
-        description = dynamicClient ? "dynamic" : "static"
+        clientKind = clientTypeCheckingMode == TypeCheckingMode.SKIP ? "dynamic" : "static"
     }
 
     private static String prefixFor(Type type) {
