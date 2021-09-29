@@ -2,6 +2,7 @@ package org.gradle.demo.api.evolution
 
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import groovy.transform.TupleConstructor
 import spock.lang.Unroll
 
 import java.lang.reflect.Type
@@ -116,10 +117,9 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
 
     @CompileStatic
     @EqualsAndHashCode
+    @TupleConstructor
     static class Thing {
-        private int value
-
-        Thing(int value) { this.value = value }
+        int value
     }
 
     @CompileStatic
