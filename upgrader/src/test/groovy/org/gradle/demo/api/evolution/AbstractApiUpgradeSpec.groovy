@@ -37,7 +37,7 @@ class AbstractApiUpgradeSpec extends Specification {
     /**
      * Compile a class against the new class-loader and then load it.
      */
-    protected Class<?> compileNew(@Language(value = "groovy", prefix = STATIC_SCRIPT_PREFIX) String script) {
+    protected Class<?> compileNewApi(@Language(value = "groovy", prefix = STATIC_SCRIPT_PREFIX) String script) {
         def newClass = compile(newClassLoader, script)
         return newClassLoader.loadClass(newClass.name)
     }
@@ -46,7 +46,7 @@ class AbstractApiUpgradeSpec extends Specification {
      * Compile a class against the old class-loader, then re-define it
      * in the new class-loader, then upgrade it, and then load it.
      */
-    protected Class<?> compileAndUpgradeOld(@Language(value = "groovy", prefix = STATIC_SCRIPT_PREFIX) String script) {
+    protected Class<?> compileAndUpgradeOldClient(@Language(value = "groovy", prefix = STATIC_SCRIPT_PREFIX) String script) {
         def oldClass = compile(oldClassLoader, script)
         manager.implementReplacements(newClassLoader, oldClass.bytes)
         return newClassLoader.loadClass(oldClass.name)
@@ -55,7 +55,7 @@ class AbstractApiUpgradeSpec extends Specification {
     /**
      * Compile a class against the old class-loader and then load it.
      */
-    protected Class<?> compileOld(@Language(value = "groovy", prefix = STATIC_SCRIPT_PREFIX) String script) {
+    protected Class<?> compileOldApi(@Language(value = "groovy", prefix = STATIC_SCRIPT_PREFIX) String script) {
         def oldClass = compile(oldClassLoader, script)
         return oldClassLoader.loadClass(oldClass.name)
     }

@@ -10,21 +10,24 @@ import java.lang.reflect.Type
 class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
 
     def "raw #originalType.simpleName property in #description client can be upgraded to lazy property"() {
-        def serverClass = compileNew """
+        // This is the new server API to run against
+        def newServerClass = compileNewApi """
             @CompileStatic
             class Server {
-                final Property<${upgradedType.name}> testProperty = new Property<>()
+                final Property<${boxedType.name}> testProperty = new Property<>()
             }
         """
 
-        manager.matchProperty(serverClass, originalType, "testProperty")
+        // Register replacement of old getter/setter property
+        manager.matchProperty(newServerClass, originalType, "testProperty")
             .replaceWith(
                 { server -> server.getTestProperty().get() },
                 { server, value -> server.getTestProperty().set(value) }
             )
         manager.init()
 
-        compileOld("""
+        // Add old server API so that we can compile the old client against it
+        compileOldApi """
             @CompileStatic
             class Server {
                 private ${originalType.name} value
@@ -35,46 +38,50 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
                     this.value = value
                 }
             }
-        """)
+        """
 
-        def oldClientClass = compileAndUpgradeOld """
-            ${dynamic ? "" : "@CompileStatic"}
+        // Compile old client against old server, then upgrade it and load it in the new class-loader
+        def upgradedOldClientClass = compileAndUpgradeOldClient """
+            ${dynamicClient ? "" : "@CompileStatic"}
+            @TupleConstructor
             class Client {
-                public ${originalType.name} callGetter(Server server) {
+                Server server
+
+                ${originalType.name} getUsingGetter() {
                     return server.${prefixFor(originalType)}TestProperty()
                 }
 
-                public void callSetter(Server server, ${originalType.name} value) {
+                void setUsingSetter(${originalType.name} value) {
                     server.setTestProperty(value)
                 }
 
-                public ${originalType.name} readProperty(Server server) {
+                ${originalType.name} getUsingGroovyProperty() {
                     return server.testProperty
                 }
 
-                public void writeProperty(Server server, ${originalType.name} value) {
+                void setUsingGroovyProperty(${originalType.name} value) {
                     server.testProperty = value
                 }
             }
         """
 
-        def server = serverClass.newInstance()
-        def oldClient = oldClientClass.newInstance()
+        def server = newServerClass.newInstance()
+        def upgradedOldClient = upgradedOldClientClass.getConstructor(newServerClass).newInstance(server)
 
         when:
-        oldClient.callSetter(server, originalValue)
+        upgradedOldClient.setUsingSetter(originalValue)
         then:
-        oldClient.callGetter(server) == originalValue
-        oldClient.readProperty(server) == originalValue
+        upgradedOldClient.getUsingGetter() == originalValue
+        upgradedOldClient.getUsingGroovyProperty() == originalValue
 
         when:
-        oldClient.writeProperty(server, changedValue)
+        upgradedOldClient.setUsingGroovyProperty(changedValue)
         then:
-        oldClient.callGetter(server) == changedValue
-        oldClient.readProperty(server) == changedValue
+        upgradedOldClient.getUsingGetter() == changedValue
+        upgradedOldClient.getUsingGroovyProperty() == changedValue
 
         where:
-        [dynamic, [originalType, upgradedType, originalValue, changedValue]] << [
+        [dynamicClient, [originalType, boxedType, originalValue, changedValue]] << [
             [
                 true,
                 false
@@ -88,19 +95,19 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
                 [Short, Short, (short) 0, (short) 123],
                 [int, Integer, 0, 123],
                 [Integer, Integer, 0, 123],
+                [long, Long, 0L, 123L],
+                [Long, Long, 0L, 123L],
                 [float, Float, 0F, 123F],
                 [Float, Float, 0F, 123F],
+                [double, Double, 0D, 123D],
+                [Double, Double, 0D, 123D],
                 [char, Character, (char) 'a', (char) 'b'],
                 [Character, Character, (Character) 'a', (Character) 'b'],
                 [String, String, "original", "lajos"],
                 [Thing, Thing, new Thing(1), new Thing(2)],
-                [long, Long, 0L, 123L],
-                [Long, Long, 0L, 123L],
-                [double, Double, 0D, 123D],
-                [Double, Double, 0D, 123D],
             ]
         ].combinations()
-        description = dynamic ? "dynamic" : "static"
+        description = dynamicClient ? "dynamic" : "static"
     }
 
     private static String prefixFor(Type type) {
