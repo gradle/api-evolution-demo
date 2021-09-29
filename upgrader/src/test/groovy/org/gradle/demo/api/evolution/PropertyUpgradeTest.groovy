@@ -94,9 +94,9 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
                 [Character, Character, (Character) 'a', (Character) 'b'],
                 [String, String, "original", "lajos"],
                 [Thing, Thing, new Thing(1), new Thing(2)],
-//                [long, Long, 0L, 123L],
+                [long, Long, 0L, 123L],
                 [Long, Long, 0L, 123L],
-//                [double, Double, 0D, 123D],
+                [double, Double, 0D, 123D],
                 [Double, Double, 0D, 123D],
             ]
         ].combinations()
