@@ -13,7 +13,7 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
         def serverClass = compileNew """
             @CompileStatic
             class Server {
-                final Property<${upgradedType.name}> testProperty = new Property<>(${originalValue})
+                final Property<${upgradedType.name}> testProperty = new Property<>()
             }
         """
 
@@ -27,7 +27,7 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
         compileOld("""
             @CompileStatic
             class Server {
-                private ${originalType.name} value = ${originalValue}
+                private ${originalType.name} value
                 ${originalType.name} ${prefixFor(originalType)}TestProperty() {
                     value
                 }
@@ -37,49 +37,67 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
             }
         """)
 
-        def oldClient = compileAndUpgradeOld """
+        def oldClientClass = compileAndUpgradeOld """
             ${dynamic ? "" : "@CompileStatic"}
             class Client {
-                public void test() {
-                    def server = new Server()
-                    assert server.${prefixFor(originalType)}TestProperty() == ${originalValue}
-                    server.setTestProperty(${changedValue})
-                    assert server.${prefixFor(originalType)}TestProperty() == ${changedValue}
+                public ${originalType.name} callGetter(Server server) {
+                    return server.${prefixFor(originalType)}TestProperty()
+                }
 
-                    server.testProperty = ${originalValue}
-                    assert server.testProperty == ${originalValue}
+                public void callSetter(Server server, ${originalType.name} value) {
+                    server.setTestProperty(value)
+                }
+
+                public ${originalType.name} readProperty(Server server) {
+                    return server.testProperty
+                }
+
+                public void writeProperty(Server server, ${originalType.name} value) {
+                    server.testProperty = value
                 }
             }
         """
 
+        def server = serverClass.newInstance()
+        def oldClient = oldClientClass.newInstance()
+
         when:
-        oldClient.newInstance().test()
+        oldClient.callSetter(server, originalValue)
         then:
-        noExceptionThrown()
+        oldClient.callGetter(server) == originalValue
+        oldClient.readProperty(server) == originalValue
+
+        when:
+        oldClient.writeProperty(server, changedValue)
+        then:
+        oldClient.callGetter(server) == changedValue
+        oldClient.readProperty(server) == changedValue
 
         where:
         [dynamic, [originalType, upgradedType, originalValue, changedValue]] << [
-            [true, false],
+            [
+                true,
+                false
+            ],
             [
                 [boolean, Boolean, false, true],
                 [Boolean, Boolean, false, true],
-                [byte, Byte, '(byte) 0', '(byte) 123'],
-                [Byte, Byte, '(byte) 0', '(byte) 123'],
-                [short, Short, '(short) 0', '(short) 123'],
-                [Short, Short, '(short) 0', '(short) 123'],
+                [byte, Byte, (byte) 0, (byte) 123],
+                [Byte, Byte, (byte) 0, (byte) 123],
+                [short, Short, (short) 0, (short) 123],
+                [Short, Short, (short) 0, (short) 123],
                 [int, Integer, 0, 123],
                 [Integer, Integer, 0, 123],
-                [float, Float, '0F', '123F'],
-                [Float, Float, '0F', '123F'],
-                [char, Character, "(char) 'a'", "(char) 'b'"],
-                [Character, Character, "(Character) 'a'", "(Character) 'b'"],
-                [String, String, '"original"', '"lajos"'],
-                [Thing, Thing, "new Thing(1)", "new Thing(2)"],
-                // TODO Long and double doesn't work yet -- https://github.com/gradle/api-evolution-demo/issues/11
-//                [long, Long, '0L', '123L'],
-//                [Long, Long, '0L', '123L'],
-//                [double, Double, '0D', '123D'],
-//                [Double, Double, '0D', '123D'],
+                [float, Float, 0F, 123F],
+                [Float, Float, 0F, 123F],
+                [char, Character, (char) 'a', (char) 'b'],
+                [Character, Character, (Character) 'a', (Character) 'b'],
+                [String, String, "original", "lajos"],
+                [Thing, Thing, new Thing(1), new Thing(2)],
+//                [long, Long, 0L, 123L],
+                [Long, Long, 0L, 123L],
+//                [double, Double, 0D, 123D],
+                [Double, Double, 0D, 123D],
             ]
         ].combinations()
         description = dynamic ? "dynamic" : "static"
@@ -100,8 +118,6 @@ class PropertyUpgradeTest extends AbstractApiUpgradeSpec {
     @CompileStatic
     static class Property<T> {
         private T value
-
-        Property(T value) { set(value) }
 
         T get() { value }
 

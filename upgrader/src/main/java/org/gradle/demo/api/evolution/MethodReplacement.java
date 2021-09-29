@@ -173,7 +173,7 @@ class MethodReplacement<T> implements Replacement {
         }
 
         // Swap the Object[] and the unboxed arg on the operand stack
-        if (sort == Type.LONG || sort == Type.DOUBLE) {
+        if (type.getSize() == 2) {
             // STACK: this, ..., arg1, arg2, [] -> this, ..., [], arg1, arg2, []
             mv.visitInsn(DUP_X2);
             // STACK: this, ..., [], arg1, arg2, [] -> this, ..., [], arg1, arg2
@@ -239,6 +239,8 @@ class MethodReplacement<T> implements Replacement {
                 methodName = "doubleValue";
                 objectType = Type.getType(Double.class);
                 break;
+            case Type.VOID:
+                return;
             default:
                 mv.visitTypeInsn(CHECKCAST, type.getInternalName());
                 return;

@@ -36,6 +36,15 @@ class DynamicGroovyPropertyReplacement<T, V> implements Replacement {
         if (callSite.getName().equals(propertyName)) {
             return Optional.of(new AbstractCallSite(callSite) {
                 @Override
+                public Object callGroovyObjectGetProperty(Object receiver) throws Throwable {
+                    if (type.isInstance(receiver)) {
+                        return getterReplacement.apply(type.cast(receiver));
+                    } else {
+                        return super.callGroovyObjectGetProperty(receiver);
+                    }
+                }
+
+                @Override
                 public Object callGetProperty(Object receiver) throws Throwable {
                     if (type.isInstance(receiver)) {
                         return getterReplacement.apply(type.cast(receiver));
