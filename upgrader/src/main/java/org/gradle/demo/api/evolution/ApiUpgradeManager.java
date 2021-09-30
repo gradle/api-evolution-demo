@@ -93,9 +93,10 @@ public class ApiUpgradeManager {
         replacements.add(new DynamicGroovyPropertyReplacement<>(type, propertyType, propertyName, getterReplacement, setterReplacement));
     }
 
-    public void implementReplacements(Type type) throws IOException, ReflectiveOperationException {
+    public void implementReplacements(String className) throws IOException, ReflectiveOperationException {
+        String type = className.replace('.', '/');
         LOGGER.info("Transforming " + type);
-        byte[] classBytes = Resources.toByteArray(Resources.getResource(type.getInternalName() + ".class"));
+        byte[] classBytes = Resources.toByteArray(Resources.getResource(type + ".class"));
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         implementReplacements(classLoader, classBytes);
     }
