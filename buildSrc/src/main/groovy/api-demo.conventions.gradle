@@ -8,11 +8,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.codehaus.groovy:groovy:3.0.9'
+    implementation 'org.codehaus.groovy:groovy:3.0.9:indy'
     implementation 'com.google.guava:guava:30.1-jre'
     implementation 'org.slf4j:slf4j-api:1.7.32'
 
-    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+    testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
+        exclude(group: 'org.codehaus.groovy')
+    }
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.slf4j:slf4j-simple:1.7.32'
 }
