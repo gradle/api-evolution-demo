@@ -7,6 +7,14 @@ repositories {
     mavenCentral()
 }
 
+plugins.withType(JavaBasePlugin).configureEach {
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(8)
+        }
+    }
+}
+
 dependencies {
     implementation 'org.codehaus.groovy:groovy:3.0.9:indy'
     implementation 'com.google.guava:guava:30.1-jre'
