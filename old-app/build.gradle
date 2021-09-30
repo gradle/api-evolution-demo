@@ -1,16 +1,7 @@
 plugins {
-    id 'groovy'
+    id 'api-demo.conventions'
 }
 
 dependencies {
-    implementation 'org.codehaus.groovy:groovy-all:3.0.7'
-    implementation 'com.google.guava:guava:30.1-jre'
     implementation project(":old-client")
-
-    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
-    testImplementation 'junit:junit:4.13.2'
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
 }

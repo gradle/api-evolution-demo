@@ -1,7 +1,5 @@
 package org.gradle.demo.api.evolution;
 
-import org.objectweb.asm.Type;
-
 import java.io.IOException;
 
 public class Upgrades {
@@ -26,7 +24,7 @@ public class Upgrades {
                 (receiver, value) -> receiver.getDoubleProperty().set(value)
             );
         for (String name : new String[]{"JavaClient", "KotlinClient", "DynamicGroovyClient", "StaticGroovyClient"}) {
-            upgradeManager.implementReplacements(Type.getType("L" + getClass().getPackage().getName().replace('.', '/') + "/" + name + ";"));
+            upgradeManager.implementReplacements(getClass().getPackage().getName() + '.' + name);
         }
         upgradeManager.init();
     }
