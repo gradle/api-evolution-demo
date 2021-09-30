@@ -1,10 +1,8 @@
 plugins {
-    id 'java-library'
-    id 'groovy'
+    id 'api-demo.conventions'
     id 'org.jetbrains.kotlin.jvm' version '1.5.21'
 }
 
 dependencies {
     api(project(":new-api"))
-    implementation("org.codehaus.groovy:groovy:3.0.8")
 }
